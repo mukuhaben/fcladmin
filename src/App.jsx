@@ -15,6 +15,8 @@ import RegistrationForm from "./pages/Registration/View/Index"
 import AccountPage from "./pages/Account/View/Index"
 import WalletPage from "./pages/Wallet/View/Index"
 import SalesAgentPage from "./pages/SalesAgent/View/Index"
+import CheckoutPage from "./pages/Checkout/View/Index"
+import AdminPage from "./pages/Admin/View/Index"
 
 function App() {
   // State for user authentication
@@ -185,6 +187,8 @@ function App() {
               <Route path="/account" element={<AccountPage />} />
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/sales-agent" element={<SalesAgentPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/admin" element={<AdminPage />} />
             </Routes>
           </main>
           <Footer />

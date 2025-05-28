@@ -38,6 +38,8 @@ function LoginPage({ onLogin }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    setError("")
+    setSuccessMessage("")
 
     // Simple validation
     if (!email || !password) {
@@ -47,12 +49,15 @@ function LoginPage({ onLogin }) {
 
     // For demo purposes, allow any email with password "0000"
     if (password === "0000") {
-      // Create mock user data based on user type
+      // Create mock user data based on user type and email
+      const isAdmin = email.toLowerCase().includes("admin")
+
       const userData = {
         username: email.split("@")[0], // Use part before @ as username
         email: email,
         id: "12345",
-        userType: userType, // Add user type to user data
+        userType: userType,
+        isAdmin: isAdmin, // Add admin flag
       }
 
       // Show success message
@@ -66,9 +71,11 @@ function LoginPage({ onLogin }) {
         onLogin(userData)
       }
 
-      // Navigate based on user type
+      // Navigate based on user type and admin status
       setTimeout(() => {
-        if (userType === "agent") {
+        if (isAdmin) {
+          navigate("/admin")
+        } else if (userType === "agent") {
           navigate("/sales-agent")
         } else {
           navigate("/account")
@@ -136,8 +143,16 @@ function LoginPage({ onLogin }) {
 
           <Box sx={{ mt: 2, mb: 2, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Demo Instructions:</strong> Enter any email address and use password "0000" to sign in as a{" "}
-              {userType}.
+              <strong>Demo Instructions:</strong>
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              • For Customer: Use any email and password "0000"
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • For Admin: Use email containing "admin" (e.g., admin@test.com) and password "0000"
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • For Sales Agent: Select "Sales Agent" and use any email with password "0000"
             </Typography>
           </Box>
 

@@ -21,6 +21,7 @@ import {
   Chip,
 } from "@mui/material"
 import { KeyboardArrowDown, ArrowBack, KeyboardArrowUp, DeleteOutline } from "@mui/icons-material"
+import { useNavigate } from "react-router-dom"
 import softChairsImage from "../../../assets/images/1.png"
 import sofaChairImage from "../../../assets/images/2.png"
 import kitchenDishesImage from "../../../assets/images/11.png"
@@ -43,6 +44,8 @@ const PRICING_TIERS = {
 }
 
 export default function Cart() {
+  const navigate = useNavigate()
+
   // Initial cart items data with cashback added
   const initialCartItems = [
     {
@@ -246,7 +249,7 @@ export default function Cart() {
                     bgcolor: "#1976d2",
                     "&:hover": { bgcolor: "#1565c0" },
                   }}
-                  onClick={() => (window.location.href = "/")}
+                  onClick={() => navigate("/")}
                 >
                   Continue Shopping
                 </Button>
@@ -546,7 +549,7 @@ export default function Cart() {
                   "&:hover": { bgcolor: "#1565c0" },
                   fontSize: "1rem",
                 }}
-                onClick={() => (window.location.href = "/")}
+                onClick={() => navigate("/")}
               >
                 Back to shop
               </Button>
@@ -587,7 +590,10 @@ export default function Cart() {
                 {formatNumberWithCommas(totalCashback)}/=
               </Typography>
             </Box>
-            
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.95rem" }}>
+              Cashback is calculated on the price excluding VAT and will be added to your e-wallet after purchase
+              completion.
+            </Typography>
           </Paper>
 
           {/* Order Summary Box */}
@@ -641,6 +647,7 @@ export default function Cart() {
               fullWidth
               size={isMobile ? "large" : "medium"}
               disabled={cartItems.length === 0}
+              onClick={() => navigate("/checkout")}
               sx={{
                 textTransform: "none",
                 py: { xs: 1.8, md: 1.5 },
