@@ -5,7 +5,17 @@ import { useNavigate } from "react-router-dom"
 import {
   Box,
   Typography,
-  Paper,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Drawer,
+  Container,
+  Alert,
   Grid,
   Card,
   CardContent,
@@ -15,6 +25,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
   Chip,
   Button,
   TextField,
@@ -23,46 +34,44 @@ import {
   DialogContent,
   DialogActions,
   Avatar,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Divider,
-  useTheme,
-  useMediaQuery,
-  Alert,
-  IconButton,
   Menu,
   MenuItem,
-  Drawer,
   InputAdornment,
-  Container,
   FormControl,
   InputLabel,
   Select,
-  LinearProgress,
 } from "@mui/material"
 import {
   Dashboard,
   People,
-  TrendingUp,
   ShoppingCart,
   Add,
+  Menu as MenuIcon,
+  Edit,
+  LocationOn,
+  Inventory,
+  Category as CategoryIcon,
+  AttachMoney,
+  Business,
+  AccountBalance,
+  TrendingUp,
+  Receipt,
+  Warning,
   Search,
   FilterList,
   Download,
+  Refresh,
   AccountCircle,
   Settings,
   ExitToApp,
-  Menu as MenuIcon,
-  Edit,
   Delete,
-  LocationOn,
-  Assignment,
   Visibility,
-  Inventory,
 } from "@mui/icons-material"
+
+import CategoryManagement from "../../../components/admin/CategoryManagement"
+import NewItemForm from "../../../components/admin/NewItemForm"
+import ManageItems from "../../../components/admin/ManageItems"
 
 // Mock data for sales agents with territory restrictions
 const initialAgents = [
@@ -176,98 +185,58 @@ const customersByAgent = {
   ],
 }
 
-// Detailed invoice data
-const todayInvoicesDetails = [
-  {
-    id: "INV001",
-    customer: "John Doe",
-    customerEmail: "john@example.com",
-    date: "2024-01-15",
-    time: "10:30 AM",
-    amount: 150000,
-    status: "paid",
-    paymentMethod: "Bank Transfer",
-    items: [
-      { name: "Office Chair", quantity: 2, unitPrice: 45000, total: 90000 },
-      { name: "Desk Lamp", quantity: 3, unitPrice: 15000, total: 45000 },
-      { name: "Notebook Set", quantity: 5, unitPrice: 3000, total: 15000 },
-    ],
-    subtotal: 150000,
-    tax: 24000,
-    total: 174000,
-    paymentDetails: {
-      method: "Bank Transfer",
-      reference: "TXN123456789",
-      bank: "KCB Bank",
-      accountNumber: "****1234",
-    },
-  },
-  {
-    id: "INV002",
-    customer: "Jane Smith",
-    customerEmail: "jane@example.com",
-    date: "2024-01-15",
-    time: "02:15 PM",
-    amount: 89000,
-    status: "pending",
-    paymentMethod: "M-Pesa",
-    items: [
-      { name: "Printer Paper", quantity: 10, unitPrice: 1200, total: 12000 },
-      { name: "Stapler", quantity: 2, unitPrice: 2500, total: 5000 },
-      { name: "Filing Cabinet", quantity: 1, unitPrice: 72000, total: 72000 },
-    ],
-    subtotal: 89000,
-    tax: 14240,
-    total: 103240,
-    paymentDetails: {
-      method: "M-Pesa",
-      reference: "Pending",
-      phone: "+254722123456",
-    },
-  },
+// Dashboard data
+const recentBuyers = [
+  { id: 1, name: "John Doe", email: "john@example.com", amount: 150000, status: "completed" },
+  { id: 2, name: "Jane Smith", email: "jane@example.com", amount: 89000, status: "pending" },
+  { id: 3, name: "Bob Johnson", email: "bob@example.com", amount: 234000, status: "completed" },
+  { id: 4, name: "Alice Brown", email: "alice@example.com", amount: 67000, status: "processing" },
 ]
 
-// Purchase orders data
-const purchaseOrdersData = [
+const recentInvoices = [
+  { id: "INV001", customer: "John Doe", amount: 150000, date: "2024-01-15", status: "paid" },
+  { id: "INV002", customer: "Jane Smith", amount: 89000, date: "2024-01-14", status: "pending" },
+  { id: "INV003", customer: "Bob Johnson", amount: 234000, date: "2024-01-13", status: "paid" },
+  { id: "INV004", customer: "Alice Brown", amount: 67000, date: "2024-01-12", status: "overdue" },
+]
+
+const stockAlerts = [
+  { product: "Chair", stock: 5, minStock: 10, status: "low" },
+  { product: "T-shirts", stock: 2, minStock: 15, status: "critical" },
+  { product: "Kitchen Dishes", stock: 8, minStock: 20, status: "low" },
+  { product: "Office Desk", stock: 1, minStock: 5, status: "critical" },
+]
+
+// Initial categories
+const initialCategories = [
   {
-    id: "PO001",
-    supplier: "Office Supplies Ltd",
-    supplierEmail: "orders@officesupplies.co.ke",
-    date: "2024-01-15",
-    time: "09:00 AM",
-    amount: 250000,
-    status: "approved",
-    expectedDelivery: "2024-01-20",
-    items: [
-      { name: "Office Chairs", quantity: 20, unitPrice: 8000, total: 160000 },
-      { name: "Desk Sets", quantity: 10, unitPrice: 6000, total: 60000 },
-      { name: "Storage Cabinets", quantity: 5, unitPrice: 6000, total: 30000 },
+    id: 1,
+    name: "Electronics",
+    description: "Electronic devices and accessories",
+    subCategories: [
+      { id: 101, name: "Laptops", description: "Portable computers" },
+      { id: 102, name: "Smartphones", description: "Mobile phones with advanced features" },
+      { id: 103, name: "Accessories", description: "Electronic accessories" },
     ],
-    subtotal: 250000,
-    tax: 40000,
-    total: 290000,
-    approvedBy: "Admin User",
-    notes: "Urgent delivery required for new office setup",
   },
   {
-    id: "PO002",
-    supplier: "Tech Solutions Kenya",
-    supplierEmail: "procurement@techsolutions.co.ke",
-    date: "2024-01-15",
-    time: "11:30 AM",
-    amount: 180000,
-    status: "pending",
-    expectedDelivery: "2024-01-25",
-    items: [
-      { name: "Laptops", quantity: 3, unitPrice: 50000, total: 150000 },
-      { name: "Mouse Sets", quantity: 10, unitPrice: 1500, total: 15000 },
-      { name: "Keyboards", quantity: 10, unitPrice: 1500, total: 15000 },
+    id: 2,
+    name: "Office Supplies",
+    description: "Supplies for office use",
+    subCategories: [
+      { id: 201, name: "Paper Products", description: "Paper, notebooks, etc." },
+      { id: 202, name: "Writing Instruments", description: "Pens, pencils, markers" },
     ],
-    subtotal: 180000,
-    tax: 28800,
-    total: 208800,
-    approvedBy: "Pending Approval",
-    notes: "Waiting for budget approval",
+  },
+  {
+    id: 3,
+    name: "Furniture",
+    description: "Office and home furniture",
+    subCategories: [
+      { id: 301, name: "Office Chairs", description: "Chairs for office use" },
+      { id: 302, name: "Desks", description: "Work desks and tables" },
+      { id: 303, name: "Storage", description: "Storage solutions" },
+    ],
   },
 ]
 
@@ -289,16 +258,13 @@ const AdminPage = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedAgent, setSelectedAgent] = useState(null)
   const [editAgent, setEditAgent] = useState(null)
-  // Add these new state variables after the existing state declarations (around line 120)
-  const [invoiceDetailsDialog, setInvoiceDetailsDialog] = useState(false)
-  const [purchaseOrderDialog, setPurchaseOrderDialog] = useState(false)
-  const [selectedInvoiceDetails, setSelectedInvoiceDetails] = useState(null)
-  const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState(null)
+  const [editingItem, setEditingItem] = useState(null)
 
   // Data state
   const [agents, setAgents] = useState(initialAgents)
   const [territories, setTerritories] = useState(initialTerritories)
   const [newTerritory, setNewTerritory] = useState("")
+  const [categories, setCategories] = useState(initialCategories)
 
   // Get current user from localStorage
   const [currentUser, setCurrentUser] = useState(null)
@@ -400,7 +366,7 @@ const AdminPage = () => {
       setTerritories([...territories, newTerritory])
       setNewTerritory("")
       setTerritoryDialog(false)
-      setSuccessMessage("Territory added successfully!")
+      setSuccessMessage("Location added successfully!")
       setTimeout(() => setSuccessMessage(""), 3000)
     }
   }
@@ -426,6 +392,20 @@ const AdminPage = () => {
     navigate("/")
   }
 
+  // Handle categories change
+  const handleCategoriesChange = (updatedCategories) => {
+    setCategories(updatedCategories)
+  }
+
+  // Handle new item submission
+  const handleNewItemSubmit = (itemData) => {
+    console.log("Item submitted:", itemData)
+    setSuccessMessage(editingItem ? "Item updated successfully!" : "Item added successfully!")
+    setTimeout(() => setSuccessMessage(""), 3000)
+    setEditingItem(null)
+    setActiveView("manage-items")
+  }
+
   // Calculate metrics
   const totalAgents = agents.length
   const activeAgents = agents.filter((a) => a.status === "active").length
@@ -441,17 +421,64 @@ const AdminPage = () => {
       agent.territory.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  // Sidebar content
+  // Helper functions
+  const formatNumberWithCommas = (number) => {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  }
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "completed":
+      case "paid":
+        return "success"
+      case "pending":
+        return "warning"
+      case "processing":
+        return "info"
+      case "overdue":
+        return "error"
+      default:
+        return "default"
+    }
+  }
+
+  const getStockStatusColor = (status) => {
+    switch (status) {
+      case "critical":
+        return "error"
+      case "low":
+        return "warning"
+      default:
+        return "success"
+    }
+  }
+
+  // Update the sidebarItems to include hierarchical structure
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: <Dashboard /> },
+    {
+      id: "products",
+      label: "Item Master",
+      icon: <ShoppingCart />,
+      subItems: [
+        { id: "new-item", label: "New Item", icon: <Add /> },
+        { id: "manage-items", label: "Manage Items", icon: <Edit /> },
+      ],
+    },
+    { id: "categories", label: "Categories", icon: <CategoryIcon /> },
+    { id: "sales", label: "Sales", icon: <AttachMoney /> },
     { id: "inventory", label: "Inventory", icon: <Inventory /> },
-    { id: "products", label: "Item Master", icon: <ShoppingCart /> },
+    { id: "suppliers", label: "Suppliers", icon: <Business /> },
+    { id: "accounts", label: "Accounts", icon: <AccountBalance /> },
     { id: "agents", label: "Sales Agents", icon: <People /> },
-    { id: "territories", label: "Territories", icon: <LocationOn /> },
-    { id: "reports", label: "Reports", icon: <Assignment /> },
-    { id: "analytics", label: "Analytics", icon: <TrendingUp /> },
+    { id: "locations", label: "Locations", icon: <LocationOn /> },
   ]
 
+  // Add state for submenu hover
+  const [hoveredItem, setHoveredItem] = useState(null)
+  const [showItemMaster, setShowItemMaster] = useState(false)
+
+  // Update the drawer content to include hover functionality
   const drawer = (
     <Box sx={{ height: "100%", bgcolor: "#f8f9fa" }}>
       <Box sx={{ p: 3, borderBottom: "1px solid #e9ecef" }}>
@@ -464,55 +491,118 @@ const AdminPage = () => {
       </Box>
       <List sx={{ px: 2, py: 2 }}>
         {sidebarItems.map((item) => (
-          <ListItem key={item.id} disablePadding sx={{ mb: 1 }}>
-            <ListItemButton
-              selected={activeView === item.id}
-              onClick={() => setActiveView(item.id)}
-              sx={{
-                borderRadius: 1,
-                py: 1.5,
-                px: 2,
-                "&.Mui-selected": {
-                  backgroundColor: "#1976d2",
-                  color: "white",
-                  "&:hover": {
-                    backgroundColor: "#1565c0",
-                  },
-                  "& .MuiListItemIcon-root": {
-                    color: "white",
-                  },
-                },
-                "&:hover": {
-                  backgroundColor: "#e3f2fd",
-                },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{
-                  fontSize: "0.875rem",
-                  fontWeight: activeView === item.id ? 600 : 400,
+          <Box key={item.id}>
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                selected={
+                  activeView === item.id ||
+                  (item.subItems && (activeView === "new-item" || activeView === "manage-items"))
+                }
+                onClick={() => {
+                  if (item.subItems) {
+                    setShowItemMaster(!showItemMaster)
+                  } else {
+                    setActiveView(item.id)
+                  }
                 }}
-              />
-            </ListItemButton>
-          </ListItem>
+                onMouseEnter={() => {
+                  if (item.subItems) {
+                    setHoveredItem(item.id)
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (item.subItems) {
+                    setHoveredItem(null)
+                  }
+                }}
+                sx={{
+                  borderRadius: 1,
+                  py: 1.5,
+                  px: 2,
+                  "&.Mui-selected": {
+                    backgroundColor: "#1976d2",
+                    color: "white",
+                    "&:hover": {
+                      backgroundColor: "#1565c0",
+                    },
+                    "& .MuiListItemIcon-root": {
+                      color: "white",
+                    },
+                  },
+                  "&:hover": {
+                    backgroundColor: "#e3f2fd",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontSize: "0.875rem",
+                    fontWeight:
+                      activeView === item.id ||
+                      (item.subItems && (activeView === "new-item" || activeView === "manage-items"))
+                        ? 600
+                        : 400,
+                  }}
+                />
+                {item.subItems && <Box sx={{ ml: 1 }}>{showItemMaster || hoveredItem === item.id ? "▼" : "▶"}</Box>}
+              </ListItemButton>
+            </ListItem>
+
+            {/* Submenu for Item Master */}
+            {item.subItems && (showItemMaster || hoveredItem === item.id) && (
+              <Box
+                sx={{
+                  ml: 2,
+                  borderLeft: "2px solid #e3f2fd",
+                  pl: 1,
+                }}
+                onMouseEnter={() => setHoveredItem(item.id)}
+                onMouseLeave={() => setHoveredItem(null)}
+              >
+                {item.subItems.map((subItem) => (
+                  <ListItem key={subItem.id} disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                      selected={activeView === subItem.id}
+                      onClick={() => setActiveView(subItem.id)}
+                      sx={{
+                        borderRadius: 1,
+                        py: 1,
+                        px: 2,
+                        "&.Mui-selected": {
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          "&:hover": {
+                            backgroundColor: "#1565c0",
+                          },
+                          "& .MuiListItemIcon-root": {
+                            color: "white",
+                          },
+                        },
+                        "&:hover": {
+                          backgroundColor: "#e3f2fd",
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 32 }}>{subItem.icon}</ListItemIcon>
+                      <ListItemText
+                        primary={subItem.label}
+                        primaryTypographyProps={{
+                          fontSize: "0.8rem",
+                          fontWeight: activeView === subItem.id ? 600 : 400,
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </Box>
+            )}
+          </Box>
         ))}
       </List>
     </Box>
   )
-
-  // Handle invoice details view
-  const handleViewInvoiceDetails = () => {
-    setSelectedInvoiceDetails(todayInvoicesDetails)
-    setInvoiceDetailsDialog(true)
-  }
-
-  // Handle purchase order details view
-  const handleViewPurchaseOrders = () => {
-    setSelectedPurchaseOrder(purchaseOrdersData)
-    setPurchaseOrderDialog(true)
-  }
 
   if (!currentUser) {
     return null
@@ -597,13 +687,19 @@ const AdminPage = () => {
               >
                 <MenuIcon />
               </IconButton>
+              {/* Update the top bar title logic */}
               <Typography variant="h5" sx={{ fontWeight: 600, color: "#333" }}>
                 {activeView === "dashboard" && "Dashboard"}
                 {activeView === "agents" && "Sales Agents Management"}
-                {activeView === "territories" && "Territory Management"}
-                {activeView === "analytics" && "Analytics & Reports"}
-                {activeView === "reports" && "Reports & History"}
+                {activeView === "locations" && "Locations Management"}
+                {activeView === "categories" && "Categories Management"}
+                {activeView === "sales" && "Sales Management"}
+                {activeView === "suppliers" && "Suppliers Management"}
+                {activeView === "accounts" && "Accounts Management"}
                 {activeView === "products" && "Item Master"}
+                {activeView === "new-item" && "Add New Product"}
+                {activeView === "manage-items" && "Manage Items"}
+                {activeView === "inventory" && "Inventory Management"}
               </Typography>
             </Box>
 
@@ -624,7 +720,7 @@ const AdminPage = () => {
                   Add Agent
                 </Button>
               )}
-              {activeView === "territories" && (
+              {activeView === "locations" && (
                 <Button
                   variant="contained"
                   startIcon={<Add />}
@@ -637,7 +733,7 @@ const AdminPage = () => {
                     px: 3,
                   }}
                 >
-                  Add Territory
+                  Add Location
                 </Button>
               )}
               <IconButton onClick={handleUserMenuOpen}>
@@ -660,249 +756,119 @@ const AdminPage = () => {
             {/* Dashboard View */}
             {activeView === "dashboard" && (
               <Box>
-                {/* Metric Cards */}
-                <Grid container spacing={3} sx={{ mb: 4 }}>
-                  <Grid item xs={12} sm={6}>
-                    <Card
-                      onClick={handleViewInvoiceDetails}
-                      sx={{
-                        background: "linear-gradient(135deg, #4caf50 0%, #45a049 100%)",
-                        color: "white",
-                        height: "140px",
-                        display: "flex",
-                        alignItems: "center",
-                        position: "relative",
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        transition: "transform 0.2s ease-in-out",
-                        "&:hover": {
-                          transform: "translateY(-4px)",
-                          boxShadow: "0 8px 25px rgba(76, 175, 80, 0.3)",
-                        },
-                      }}
-                    >
-                      <CardContent sx={{ position: "relative", zIndex: 2, width: "100%" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                          <Box>
-                            <Typography variant="h3" sx={{ fontWeight: "bold", mb: 1 }}>
-                              12
-                            </Typography>
-                            <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                              Today's Invoices
-                            </Typography>
-                          </Box>
-                          <Box
-                            sx={{
-                              bgcolor: "rgba(255,255,255,0.2)",
-                              borderRadius: "50%",
-                              p: 2,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Assignment sx={{ fontSize: 32 }} />
-                          </Box>
-                        </Box>
-                        <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-                          +5 from yesterday
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ mb: 4 }}>
+                  Admin Dashboard
+                </Typography>
 
-                  <Grid item xs={12} sm={6}>
-                    <Card
-                      onClick={handleViewPurchaseOrders}
-                      sx={{
-                        background: "linear-gradient(135deg, #2196f3 0%, #1976d2 100%)",
-                        color: "white",
-                        height: "140px",
-                        display: "flex",
-                        alignItems: "center",
-                        position: "relative",
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        transition: "transform 0.2s ease-in-out",
-                        "&:hover": {
-                          transform: "translateY(-4px)",
-                          boxShadow: "0 8px 25px rgba(33, 150, 243, 0.3)",
-                        },
-                      }}
-                    >
-                      <CardContent sx={{ position: "relative", zIndex: 2, width: "100%" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                          <Box>
-                            <Typography variant="h3" sx={{ fontWeight: "bold", mb: 1 }}>
-                              8
-                            </Typography>
-                            <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                              Purchase Orders
+                {/* Metrics Cards */}
+                <Grid container spacing={3} sx={{ mb: 4 }}>
+                  {[
+                    {
+                      title: "Today Invoices",
+                      value: "12",
+                      change: "+5",
+                      icon: <Receipt />,
+                      color: "#4CAF50",
+                      bgColor: "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)",
+                    },
+                    {
+                      title: "Today's Purchase Order",
+                      value: "8",
+                      change: "+3",
+                      icon: <Business />,
+                      color: "#2196F3",
+                      bgColor: "linear-gradient(135deg, #2196F3 0%, #1976d2 100%)",
+                    },
+                  ].map((metric, index) => (
+                    <Grid item xs={12} sm={6} md={3} key={index}>
+                      <Card
+                        sx={{
+                          background: metric.bgColor,
+                          color: "white",
+                          height: "140px",
+                          position: "relative",
+                          overflow: "hidden",
+                          "&::before": {
+                            content: '""',
+                            position: "absolute",
+                            top: 0,
+                            right: 0,
+                            width: "100px",
+                            height: "100px",
+                            background: "rgba(255,255,255,0.1)",
+                            borderRadius: "50%",
+                            transform: "translate(30px, -30px)",
+                          },
+                        }}
+                      >
+                        <CardContent sx={{ position: "relative", zIndex: 1 }}>
+                          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                            <Box
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                backgroundColor: "rgba(255,255,255,0.2)",
+                              }}
+                            >
+                              {metric.icon}
+                            </Box>
+                            <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
+                              {metric.change}
                             </Typography>
                           </Box>
-                          <Box
-                            sx={{
-                              bgcolor: "rgba(255,255,255,0.2)",
-                              borderRadius: "50%",
-                              p: 2,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <ShoppingCart sx={{ fontSize: 32 }} />
-                          </Box>
-                        </Box>
-                        <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-                          +3 pending approval
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                          <Typography variant="h4" fontWeight="bold" sx={{ mb: 0.5 }}>
+                            {metric.value}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.9)" }}>
+                            {metric.title}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
                 </Grid>
 
-                {/* Two Column Layout - Stock Alerts and Recent Invoices */}
                 <Grid container spacing={3}>
+                  {/* Stock Alerts - Full Width */}
                   <Grid item xs={12}>
-                    <Paper sx={{ p: 3 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                        <Box
-                          sx={{
-                            bgcolor: "#ff9800",
-                            borderRadius: "50%",
-                            p: 1,
-                            mr: 1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              bgcolor: "white",
-                              borderRadius: "50%",
-                              width: 0,
-                              height: 0,
-                              border: "4px solid #ff9800",
-                            }}
-                          />
-                        </Box>
-                        <Typography variant="h6" fontWeight="bold">
-                          Stock Alerts
-                        </Typography>
+                    <Paper sx={{ p: 3, height: "400px" }}>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        gutterBottom
+                        sx={{ display: "flex", alignItems: "center" }}
+                      >
+                        <Warning sx={{ mr: 1 }} />
+                        Stock Alerts
+                      </Typography>
+                      <Divider sx={{ mb: 2 }} />
+                      <Box sx={{ maxHeight: "300px", overflow: "auto" }}>
+                        {stockAlerts.map((item, index) => (
+                          <Box key={index} sx={{ display: "flex", alignItems: "center", mb: 2, p: 1 }}>
+                            <Avatar
+                              sx={{
+                                bgcolor: getStockStatusColor(item.status) === "error" ? "#f44336" : "#ff9800",
+                                mr: 2,
+                              }}
+                            >
+                              <Inventory />
+                            </Avatar>
+                            <Box sx={{ flexGrow: 1 }}>
+                              <Typography variant="body1" fontWeight="medium">
+                                {item.product}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Stock Level: {item.status === "critical" ? "Critical" : "Low"}
+                              </Typography>
+                            </Box>
+                            <Chip
+                              label={`${item.stock}/${item.minStock}`}
+                              size="small"
+                              color={getStockStatusColor(item.status)}
+                            />
+                          </Box>
+                        ))}
                       </Box>
-                      <List sx={{ p: 0 }}>
-                        <ListItem sx={{ px: 0, py: 2 }}>
-                          <Box
-                            sx={{
-                              bgcolor: "#ff9800",
-                              borderRadius: 2,
-                              p: 1.5,
-                              mr: 2,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Assignment sx={{ color: "white", fontSize: 24 }} />
-                          </Box>
-                          <ListItemText
-                            primary={
-                              <Typography variant="body1" fontWeight="medium">
-                                Chair
-                              </Typography>
-                            }
-                            secondary={
-                              <Typography variant="body2" color="text.secondary">
-                                Stock Level: Low
-                              </Typography>
-                            }
-                          />
-                          <Chip
-                            label="5/10"
-                            size="small"
-                            sx={{
-                              bgcolor: "#ff9800",
-                              color: "white",
-                              fontWeight: "bold",
-                            }}
-                          />
-                        </ListItem>
-                        <Divider />
-                        <ListItem sx={{ px: 0, py: 2 }}>
-                          <Box
-                            sx={{
-                              bgcolor: "#f44336",
-                              borderRadius: 2,
-                              p: 1.5,
-                              mr: 2,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Assignment sx={{ color: "white", fontSize: 24 }} />
-                          </Box>
-                          <ListItemText
-                            primary={
-                              <Typography variant="body1" fontWeight="medium">
-                                T-shirts
-                              </Typography>
-                            }
-                            secondary={
-                              <Typography variant="body2" color="text.secondary">
-                                Stock Level: Critical
-                              </Typography>
-                            }
-                          />
-                          <Chip
-                            label="2/15"
-                            size="small"
-                            sx={{
-                              bgcolor: "#f44336",
-                              color: "white",
-                              fontWeight: "bold",
-                            }}
-                          />
-                        </ListItem>
-                        <Divider />
-                        <ListItem sx={{ px: 0, py: 2 }}>
-                          <Box
-                            sx={{
-                              bgcolor: "#4caf50",
-                              borderRadius: 2,
-                              p: 1.5,
-                              mr: 2,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Assignment sx={{ color: "white", fontSize: 24 }} />
-                          </Box>
-                          <ListItemText
-                            primary={
-                              <Typography variant="body1" fontWeight="medium">
-                                Office Supplies
-                              </Typography>
-                            }
-                            secondary={
-                              <Typography variant="body2" color="text.secondary">
-                                Stock Level: Good
-                              </Typography>
-                            }
-                          />
-                          <Chip
-                            label="25/30"
-                            size="small"
-                            sx={{
-                              bgcolor: "#4caf50",
-                              color: "white",
-                              fontWeight: "bold",
-                            }}
-                          />
-                        </ListItem>
-                      </List>
                     </Paper>
                   </Grid>
                 </Grid>
@@ -912,6 +878,81 @@ const AdminPage = () => {
             {/* Sales Agents View */}
             {activeView === "agents" && (
               <Box>
+                {/* Metrics Cards */}
+                <Grid container spacing={3} sx={{ mb: 4 }}>
+                  <Grid item xs={12} sm={6} lg={3}>
+                    <Card sx={{ height: "100%" }}>
+                      <CardContent>
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <Box>
+                            <Typography color="text.secondary" gutterBottom sx={{ fontSize: "0.875rem" }}>
+                              Total Agents
+                            </Typography>
+                            <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                              {totalAgents}
+                            </Typography>
+                          </Box>
+                          <People sx={{ fontSize: 40, color: "#1976d2" }} />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} lg={3}>
+                    <Card sx={{ height: "100%" }}>
+                      <CardContent>
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <Box>
+                            <Typography color="text.secondary" gutterBottom sx={{ fontSize: "0.875rem" }}>
+                              Active Agents
+                            </Typography>
+                            <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                              {activeAgents}
+                            </Typography>
+                          </Box>
+                          <TrendingUp sx={{ fontSize: 40, color: "#4caf50" }} />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} lg={3}>
+                    <Card sx={{ height: "100%" }}>
+                      <CardContent>
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <Box>
+                            <Typography color="text.secondary" gutterBottom sx={{ fontSize: "0.875rem" }}>
+                              Sales Target
+                            </Typography>
+                            <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                              {(totalSalesTarget / 1000000).toFixed(1)}M
+                            </Typography>
+                          </Box>
+                          <AttachMoney sx={{ fontSize: 40, color: "#ff9800" }} />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} lg={3}>
+                    <Card sx={{ height: "100%" }}>
+                      <CardContent>
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <Box>
+                            <Typography color="text.secondary" gutterBottom sx={{ fontSize: "0.875rem" }}>
+                              Total Customers
+                            </Typography>
+                            <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                              {totalCustomers}
+                            </Typography>
+                          </Box>
+                          <People sx={{ fontSize: 40, color: "#9c27b0" }} />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+
                 {/* Search and Actions Bar */}
                 <Box sx={{ mb: 3 }}>
                   <Box
@@ -966,6 +1007,18 @@ const AdminPage = () => {
                     >
                       Export
                     </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Refresh />}
+                      sx={{
+                        textTransform: "none",
+                        borderColor: "#ddd",
+                        color: "#666",
+                        "&:hover": { borderColor: "#1976d2", color: "#1976d2" },
+                      }}
+                    >
+                      Refresh
+                    </Button>
                   </Box>
                 </Box>
 
@@ -978,122 +1031,113 @@ const AdminPage = () => {
                           <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }}>
                             Agent Name
                           </TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }}>Email</TableCell>
                           <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }}>Territory</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }} align="center">
-                            Customers
+                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }}>
+                            Sales Target
                           </TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }} align="center">
-                            Performance
+                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }}>
+                            Sales Achieved
                           </TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }} align="center">
-                            Status
-                          </TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }} align="center">
-                            Actions
-                          </TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }}>Customers</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }}>Status</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: "#333", fontSize: "0.875rem" }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {filteredAgents.map((agent) => {
-                          const performance = (agent.salesAchieved / agent.salesTarget) * 100
-                          return (
-                            <TableRow
-                              key={agent.id}
-                              hover
-                              sx={{
-                                "&:hover": { bgcolor: "#f8f9fa" },
-                                borderBottom: "1px solid #e9ecef",
-                              }}
-                            >
-                              <TableCell>
-                                <Box sx={{ display: "flex", alignItems: "center" }}>
-                                  <Avatar
-                                    sx={{
-                                      mr: 2,
-                                      bgcolor: "#1976d2",
-                                      width: 32,
-                                      height: 32,
-                                      fontSize: "0.875rem",
-                                      fontWeight: 600,
-                                    }}
-                                  >
-                                    {agent.name.charAt(0)}
-                                  </Avatar>
-                                  <Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 500, color: "#333" }}>
-                                      {agent.name}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                      {agent.email}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              </TableCell>
-                              <TableCell>
-                                <Chip
-                                  label={agent.territory}
-                                  size="small"
+                        {filteredAgents.map((agent) => (
+                          <TableRow
+                            key={agent.id}
+                            hover
+                            sx={{
+                              "&:hover": { bgcolor: "#f8f9fa" },
+                              borderBottom: "1px solid #e9ecef",
+                            }}
+                          >
+                            <TableCell>
+                              <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Avatar
                                   sx={{
-                                    bgcolor: "#e3f2fd",
-                                    color: "#1976d2",
-                                    fontWeight: 500,
+                                    mr: 2,
+                                    bgcolor: "#1976d2",
+                                    width: 32,
+                                    height: 32,
+                                    fontSize: "0.875rem",
+                                    fontWeight: 600,
                                   }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                  {agent.customersOnboarded}
+                                >
+                                  {agent.name.charAt(0)}
+                                </Avatar>
+                                <Typography variant="body2" sx={{ fontWeight: 500, color: "#333" }}>
+                                  {agent.name}
                                 </Typography>
-                              </TableCell>
-                              <TableCell align="center">
-                                <Box sx={{ minWidth: 100 }}>
-                                  <Typography variant="body2" sx={{ mb: 1 }}>
-                                    {performance.toFixed(1)}%
-                                  </Typography>
-                                  <LinearProgress
-                                    variant="determinate"
-                                    value={Math.min(performance, 100)}
-                                    color={performance >= 80 ? "success" : performance >= 60 ? "warning" : "error"}
-                                    sx={{ height: 6, borderRadius: 3 }}
-                                  />
-                                </Box>
-                              </TableCell>
-                              <TableCell align="center">
-                                <Chip
-                                  label={agent.status}
-                                  size="small"
-                                  color={agent.status === "active" ? "success" : "error"}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                {agent.email}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                {agent.territory}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                KSh {(agent.salesTarget / 1000).toFixed(0)}K
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                KSh {(agent.salesAchieved / 1000).toFixed(0)}K
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="text"
+                                size="small"
+                                onClick={() => handleViewCustomers(agent)}
+                                sx={{ textTransform: "none" }}
+                              >
+                                {agent.customersOnboarded}
+                              </Button>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={agent.status}
+                                size="small"
+                                color={agent.status === "active" ? "success" : "default"}
+                                sx={{ textTransform: "capitalize" }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: "flex", gap: 1 }}>
                                 <IconButton
                                   size="small"
                                   onClick={() => handleViewCustomers(agent)}
-                                  sx={{ mr: 1 }}
-                                  title="View Customers"
+                                  sx={{ color: "#4caf50" }}
                                 >
                                   <Visibility />
                                 </IconButton>
                                 <IconButton
                                   size="small"
                                   onClick={() => handleEditAgent(agent)}
-                                  sx={{ mr: 1 }}
-                                  title="Edit Agent"
+                                  sx={{ color: "#ff9800" }}
                                 >
                                   <Edit />
                                 </IconButton>
                                 <IconButton
                                   size="small"
-                                  color="error"
                                   onClick={() => handleDeleteAgent(agent.id)}
-                                  title="Remove Agent"
+                                  sx={{ color: "#f44336" }}
                                 >
                                   <Delete />
                                 </IconButton>
-                              </TableCell>
-                            </TableRow>
-                          )
-                        })}
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -1101,121 +1145,146 @@ const AdminPage = () => {
               </Box>
             )}
 
-            {/* Territories View */}
-            {activeView === "territories" && (
+            {/* Locations View */}
+            {activeView === "locations" && (
               <Box>
-                <Grid container spacing={3}>
+                <Grid container spacing={3} sx={{ mb: 4 }}>
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3 }}>
-                      <Typography variant="h6" fontWeight="bold" gutterBottom>
-                        Available Territories
-                      </Typography>
-                      <List>
-                        {territories.map((territory, index) => (
-                          <ListItem key={index} sx={{ px: 0 }}>
-                            <ListItemIcon>
-                              <LocationOn color="primary" />
-                            </ListItemIcon>
-                            <ListItemText primary={territory} />
-                            <Typography variant="body2" color="text.secondary">
-                              {agents.filter((a) => a.territory === territory).length} agents
-                            </Typography>
-                          </ListItem>
-                        ))}
-                      </List>
-                    </Paper>
+                    <Card>
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                          Available Locations
+                        </Typography>
+                        <Typography variant="h3" color="primary" fontWeight="bold">
+                          {territories.length}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Total locations configured
+                        </Typography>
+                      </CardContent>
+                    </Card>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3 }}>
-                      <Typography variant="h6" fontWeight="bold" gutterBottom>
-                        Territory Distribution
-                      </Typography>
-                      {territories.map((territory) => {
-                        const agentCount = agents.filter((a) => a.territory === territory).length
-                        const percentage = totalAgents > 0 ? (agentCount / totalAgents) * 100 : 0
-                        return (
-                          <Box key={territory} sx={{ mb: 2 }}>
-                            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                              <Typography variant="body2">{territory}</Typography>
-                              <Typography variant="body2">{agentCount} agents</Typography>
-                            </Box>
-                            <LinearProgress
-                              variant="determinate"
-                              value={percentage}
-                              sx={{ height: 8, borderRadius: 4 }}
-                            />
-                          </Box>
-                        )
-                      })}
-                    </Paper>
+                    <Card>
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                          Active Agents
+                        </Typography>
+                        <Typography variant="h3" color="success.main" fontWeight="bold">
+                          {activeAgents}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Agents working in these locations
+                        </Typography>
+                      </CardContent>
+                    </Card>
                   </Grid>
                 </Grid>
-              </Box>
-            )}
 
-            {/* Analytics View */}
-            {activeView === "analytics" && (
-              <Box>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  Analytics & Reports
-                </Typography>
-                <Paper sx={{ p: 3, textAlign: "center" }}>
-                  <Assignment sx={{ fontSize: 64, color: "#ccc", mb: 2 }} />
-                  <Typography variant="h6" color="text.secondary">
-                    Analytics Dashboard Coming Soon
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Location Management
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Detailed analytics and reporting features will be available here.
-                  </Typography>
+                  <Divider sx={{ mb: 3 }} />
+
+                  <Grid container spacing={2}>
+                    {territories.map((territory, index) => (
+                      <Grid item xs={12} sm={6} md={4} key={index}>
+                        <Card sx={{ p: 2, border: "1px solid #e0e0e0" }}>
+                          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              <LocationOn sx={{ mr: 1, color: "#1976d2" }} />
+                              <Typography variant="body1" fontWeight="medium">
+                                {territory}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">
+                                {agents.filter((agent) => agent.territory === territory).length} agents
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
                 </Paper>
               </Box>
             )}
 
-            {/* Reports View */}
-            {activeView === "reports" && (
+            {/* Categories View */}
+            {activeView === "categories" && (
               <Box>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  Reports & Historical Data
+                <CategoryManagement onCategoriesChange={handleCategoriesChange} />
+              </Box>
+            )}
+
+            {/* New Item View */}
+            {activeView === "new-item" && (
+              <Box>
+                <NewItemForm categories={categories} onSubmit={handleNewItemSubmit} editItem={editingItem} />
+              </Box>
+            )}
+
+            {/* Manage Items View */}
+            {(activeView === "manage-items" || activeView === "products") && (
+              <Box>
+                <ManageItems
+                  onEditItem={(item) => {
+                    setEditingItem(item)
+                    setActiveView("new-item")
+                  }}
+                  onAddNewItem={() => {
+                    setEditingItem(null)
+                    setActiveView("new-item")
+                  }}
+                />
+              </Box>
+            )}
+
+            {/* Placeholder views for other sections */}
+            {activeView === "sales" && (
+              <Box>
+                <Typography variant="h6">Sales Management</Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Sales management functionality will be implemented here.
                 </Typography>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, textAlign: "center", minHeight: 200 }}>
-                      <Assignment sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
-                      <Typography variant="h6" fontWeight="bold" gutterBottom>
-                        Invoice History
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        View and download historical invoice data
-                      </Typography>
-                      <Button variant="contained" sx={{ textTransform: "none" }}>
-                        View All Invoices
-                      </Button>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, textAlign: "center", minHeight: 200 }}>
-                      <ShoppingCart sx={{ fontSize: 64, color: "#2196f3", mb: 2 }} />
-                      <Typography variant="h6" fontWeight="bold" gutterBottom>
-                        Purchase Order History
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Access past purchase orders and supplier data
-                      </Typography>
-                      <Button variant="contained" sx={{ textTransform: "none" }}>
-                        View All Orders
-                      </Button>
-                    </Paper>
-                  </Grid>
-                </Grid>
+              </Box>
+            )}
+
+            {activeView === "suppliers" && (
+              <Box>
+                <Typography variant="h6">Suppliers Management</Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Suppliers management functionality will be implemented here.
+                </Typography>
+              </Box>
+            )}
+
+            {activeView === "accounts" && (
+              <Box>
+                <Typography variant="h6">Accounts Management</Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Accounts management functionality will be implemented here.
+                </Typography>
+              </Box>
+            )}
+
+            {activeView === "inventory" && (
+              <Box>
+                <Typography variant="h6">Inventory Management</Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Inventory management functionality will be implemented here.
+                </Typography>
               </Box>
             )}
           </Box>
         </Box>
       </Box>
 
-      {/* Add/Edit Agent Dialog */}
+      {/* Add Agent Dialog */}
       <Dialog open={agentDialog} onClose={() => setAgentDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>{editAgent ? "Edit Sales Agent" : "Add New Sales Agent"}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>{editAgent ? "Edit Agent" : "Add New Sales Agent"}</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -1259,7 +1328,7 @@ const AdminPage = () => {
           <TextField
             margin="dense"
             name="salesTarget"
-            label="Sales Target (KSH)"
+            label="Sales Target (KSh)"
             type="number"
             fullWidth
             variant="outlined"
@@ -1295,18 +1364,18 @@ const AdminPage = () => {
       </Dialog>
 
       {/* Add Territory Dialog */}
-      <Dialog open={territoryDialog} onClose={() => setTerritoryDialog(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>Add New Territory</DialogTitle>
+      <Dialog open={territoryDialog} onClose={() => setTerritoryDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600 }}>Add New Location</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Territory Name"
+            label="Location Name"
             fullWidth
             variant="outlined"
             value={newTerritory}
             onChange={(e) => setNewTerritory(e.target.value)}
-            placeholder="e.g., Kilimani, Karen, etc."
+            placeholder="Enter location name (e.g., Nairobi CBD, Karen, etc.)"
           />
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
@@ -1314,72 +1383,44 @@ const AdminPage = () => {
             Cancel
           </Button>
           <Button onClick={handleAddTerritory} variant="contained" sx={{ textTransform: "none", fontWeight: 500 }}>
-            Add Territory
+            Add Location
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* View Customers Dialog */}
       <Dialog open={customerDialog} onClose={() => setCustomerDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          Customers - {selectedAgent?.name} ({selectedAgent?.territory})
-        </DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>Customers Onboarded by {selectedAgent?.name}</DialogTitle>
         <DialogContent>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ bgcolor: "#f8f9fa" }}>
-                  <TableCell sx={{ fontWeight: 600 }}>Customer Name</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Company</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Date Onboarded</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }} align="center">
-                    Total Orders
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {selectedAgent &&
-                  customersByAgent[selectedAgent.id]?.map((customer) => (
+          {selectedAgent && customersByAgent[selectedAgent.id] && (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: "#f8f9fa" }}>
+                    <TableCell sx={{ fontWeight: 600 }}>Customer Name</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Company</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Date Onboarded</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Total Orders</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {customersByAgent[selectedAgent.id].map((customer) => (
                     <TableRow key={customer.id} hover>
-                      <TableCell>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <Avatar sx={{ mr: 2, bgcolor: "#1976d2", width: 32, height: 32 }}>
-                            {customer.name.charAt(0)}
-                          </Avatar>
-                          <Typography variant="body2" fontWeight="medium">
-                            {customer.name}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {customer.email}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {customer.company}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {customer.dateOnboarded}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Typography variant="body2" fontWeight="medium">
-                          {customer.totalOrders}
-                        </Typography>
-                      </TableCell>
+                      <TableCell>{customer.name}</TableCell>
+                      <TableCell>{customer.email}</TableCell>
+                      <TableCell>{customer.company}</TableCell>
+                      <TableCell>{customer.dateOnboarded}</TableCell>
+                      <TableCell>{customer.totalOrders}</TableCell>
                     </TableRow>
                   ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setCustomerDialog(false)} variant="contained" sx={{ textTransform: "none" }}>
+          <Button onClick={() => setCustomerDialog(false)} sx={{ textTransform: "none" }}>
             Close
           </Button>
         </DialogActions>
@@ -1395,7 +1436,7 @@ const AdminPage = () => {
       >
         <MenuItem onClick={handleUserMenuClose}>
           <AccountCircle sx={{ mr: 1 }} />
-          My Profile
+          Profile
         </MenuItem>
         <MenuItem onClick={handleUserMenuClose}>
           <Settings sx={{ mr: 1 }} />
@@ -1407,266 +1448,6 @@ const AdminPage = () => {
           Logout
         </MenuItem>
       </Menu>
-      {/* Invoice Details Dialog */}
-      <Dialog open={invoiceDetailsDialog} onClose={() => setInvoiceDetailsDialog(false)} maxWidth="lg" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, borderBottom: "1px solid #e9ecef" }}>Today's Invoices Details</DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
-          {selectedInvoiceDetails && (
-            <Box sx={{ p: 3 }}>
-              <Grid container spacing={3}>
-                {selectedInvoiceDetails.map((invoice) => (
-                  <Grid item xs={12} key={invoice.id}>
-                    <Paper sx={{ p: 3, border: "1px solid #e9ecef" }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                        <Box>
-                          <Typography variant="h6" fontWeight="bold" color="primary">
-                            {invoice.id}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {invoice.date} at {invoice.time}
-                          </Typography>
-                        </Box>
-                        <Chip
-                          label={invoice.status}
-                          color={invoice.status === "paid" ? "success" : "warning"}
-                          sx={{ fontWeight: 600 }}
-                        />
-                      </Box>
-
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                            Customer Information
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Name:</strong> {invoice.customer}
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Email:</strong> {invoice.customerEmail}
-                          </Typography>
-
-                          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
-                            Payment Details
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Method:</strong> {invoice.paymentDetails.method}
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Reference:</strong> {invoice.paymentDetails.reference}
-                          </Typography>
-                          {invoice.paymentDetails.bank && (
-                            <Typography variant="body2">
-                              <strong>Bank:</strong> {invoice.paymentDetails.bank}
-                            </Typography>
-                          )}
-                          {invoice.paymentDetails.phone && (
-                            <Typography variant="body2">
-                              <strong>Phone:</strong> {invoice.paymentDetails.phone}
-                            </Typography>
-                          )}
-                        </Grid>
-
-                        <Grid item xs={12} md={6}>
-                          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                            Order Summary
-                          </Typography>
-                          <TableContainer>
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell sx={{ fontWeight: 600 }}>Item</TableCell>
-                                  <TableCell align="center" sx={{ fontWeight: 600 }}>
-                                    Qty
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
-                                    Price
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
-                                    Total
-                                  </TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {invoice.items.map((item, index) => (
-                                  <TableRow key={index}>
-                                    <TableCell>{item.name}</TableCell>
-                                    <TableCell align="center">{item.quantity}</TableCell>
-                                    <TableCell align="right">{item.unitPrice.toLocaleString()}/=</TableCell>
-                                    <TableCell align="right">{item.total.toLocaleString()}/=</TableCell>
-                                  </TableRow>
-                                ))}
-                                <TableRow>
-                                  <TableCell colSpan={3} sx={{ fontWeight: 600 }}>
-                                    Subtotal
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
-                                    {invoice.subtotal.toLocaleString()}/=
-                                  </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                  <TableCell colSpan={3} sx={{ fontWeight: 600 }}>
-                                    Tax (16%)
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
-                                    {invoice.tax.toLocaleString()}/=
-                                  </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                  <TableCell colSpan={3} sx={{ fontWeight: 600, fontSize: "1.1rem" }}>
-                                    Total
-                                  </TableCell>
-                                  <TableCell
-                                    align="right"
-                                    sx={{ fontWeight: 600, fontSize: "1.1rem", color: "primary.main" }}
-                                  >
-                                    {invoice.total.toLocaleString()}/=
-                                  </TableCell>
-                                </TableRow>
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        </Grid>
-                      </Grid>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 3, borderTop: "1px solid #e9ecef" }}>
-          <Button onClick={() => setInvoiceDetailsDialog(false)} variant="contained" sx={{ textTransform: "none" }}>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Purchase Orders Dialog */}
-      <Dialog open={purchaseOrderDialog} onClose={() => setPurchaseOrderDialog(false)} maxWidth="lg" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, borderBottom: "1px solid #e9ecef" }}>Purchase Orders Details</DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
-          {selectedPurchaseOrder && (
-            <Box sx={{ p: 3 }}>
-              <Grid container spacing={3}>
-                {selectedPurchaseOrder.map((po) => (
-                  <Grid item xs={12} key={po.id}>
-                    <Paper sx={{ p: 3, border: "1px solid #e9ecef" }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                        <Box>
-                          <Typography variant="h6" fontWeight="bold" color="primary">
-                            {po.id}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {po.date} at {po.time}
-                          </Typography>
-                        </Box>
-                        <Chip
-                          label={po.status}
-                          color={po.status === "approved" ? "success" : "warning"}
-                          sx={{ fontWeight: 600 }}
-                        />
-                      </Box>
-
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                            Supplier Information
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Name:</strong> {po.supplier}
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Email:</strong> {po.supplierEmail}
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Expected Delivery:</strong> {po.expectedDelivery}
-                          </Typography>
-
-                          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
-                            Approval Details
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Approved By:</strong> {po.approvedBy}
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Notes:</strong> {po.notes}
-                          </Typography>
-                        </Grid>
-
-                        <Grid item xs={12} md={6}>
-                          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                            Order Summary
-                          </Typography>
-                          <TableContainer>
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell sx={{ fontWeight: 600 }}>Item</TableCell>
-                                  <TableCell align="center" sx={{ fontWeight: 600 }}>
-                                    Qty
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
-                                    Price
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
-                                    Total
-                                  </TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {po.items.map((item, index) => (
-                                  <TableRow key={index}>
-                                    <TableCell>{item.name}</TableCell>
-                                    <TableCell align="center">{item.quantity}</TableCell>
-                                    <TableCell align="right">{item.unitPrice.toLocaleString()}/=</TableCell>
-                                    <TableCell align="right">{item.total.toLocaleString()}/=</TableCell>
-                                  </TableRow>
-                                ))}
-                                <TableRow>
-                                  <TableCell colSpan={3} sx={{ fontWeight: 600 }}>
-                                    Subtotal
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
-                                    {po.subtotal.toLocaleString()}/=
-                                  </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                  <TableCell colSpan={3} sx={{ fontWeight: 600 }}>
-                                    Tax (16%)
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: 600 }}>
-                                    {po.tax.toLocaleString()}/=
-                                  </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                  <TableCell colSpan={3} sx={{ fontWeight: 600, fontSize: "1.1rem" }}>
-                                    Total
-                                  </TableCell>
-                                  <TableCell
-                                    align="right"
-                                    sx={{ fontWeight: 600, fontSize: "1.1rem", color: "primary.main" }}
-                                  >
-                                    {po.total.toLocaleString()}/=
-                                  </TableCell>
-                                </TableRow>
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        </Grid>
-                      </Grid>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 3, borderTop: "1px solid #e9ecef" }}>
-          <Button onClick={() => setPurchaseOrderDialog(false)} variant="contained" sx={{ textTransform: "none" }}>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Container>
   )
 }
