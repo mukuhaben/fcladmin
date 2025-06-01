@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 import CssBaseline from "@mui/material/CssBaseline"
 import IndexPage from "./pages/Home/View"
@@ -17,6 +17,14 @@ import WalletPage from "./pages/Wallet/View/Index"
 import SalesAgentPage from "./pages/SalesAgent/View/Index"
 import CheckoutPage from "./pages/Checkout/View/Index"
 import AdminPage from "./pages/Admin/View/Index"
+
+// Wrapper component to handle conditional navigation
+const AppWrapper = ({ children }) => {
+  const location = useLocation()
+  const isAdminPage = location.pathname === "/admin"
+
+  return React.cloneElement(children, { isAdminPage })
+}
 
 function App() {
   // State for user authentication
@@ -173,26 +181,28 @@ function App() {
       {/* CssBaseline provides consistent baseline styles */}
       <CssBaseline />
       <BrowserRouter>
-        <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-          <NavigationBar isLoggedIn={isLoggedIn} currentUser={currentUser} onLogout={handleLogout} />
-          <main style={{ flexGrow: 1 }}>
-            <Routes>
-              <Route path="/" element={<IndexPage />} />
-              <Route path="/product-details" element={<ProductDetails />} />
-              <Route path="/product-details/:id" element={<ProductDetails />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/RegistrationForm" element={<RegistrationForm />} />
-              <Route path="/account" element={<AccountPage />} />
-              <Route path="/wallet" element={<WalletPage />} />
-              <Route path="/sales-agent" element={<SalesAgentPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+        <AppWrapper>
+          <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+            <NavigationBar isLoggedIn={isLoggedIn} currentUser={currentUser} onLogout={handleLogout} />
+            <main style={{ flexGrow: 1 }}>
+              <Routes>
+                <Route path="/" element={<IndexPage />} />
+                <Route path="/product-details" element={<ProductDetails />} />
+                <Route path="/product-details/:id" element={<ProductDetails />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/RegistrationForm" element={<RegistrationForm />} />
+                <Route path="/account" element={<AccountPage />} />
+                <Route path="/wallet" element={<WalletPage />} />
+                <Route path="/sales-agent" element={<SalesAgentPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </AppWrapper>
       </BrowserRouter>
     </ThemeProvider>
   )

@@ -15,7 +15,6 @@ import {
   InputAdornment,
   FormHelperText,
   Card,
-  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -25,39 +24,89 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Switch,
+  FormControlLabel,
+  Chip,
 } from "@mui/material"
-import { Upload, Add, Delete, Image as ImageIcon, ExpandMore, QrCode } from "@mui/icons-material"
+import { Upload, Image as ImageIcon, ExpandMore, QrCode } from "@mui/icons-material"
 
-// Initial form state
+// Initial form state with all required fields
 const initialFormState = {
+  // Basic Information
   productName: "",
-  itemCode: "",
-  productBarcode: "",
+  productCode: "", // Alphanumeric format A0101001
+  uom: "PC", // Unit of Measure
+  packSize: "",
   category: "",
   subCategory: "",
   description: "",
-  cashbackRate: "0",
-  retailPrice: "", // Supplier price (hidden from customers)
-  stockUnits: "",
-  alertQuantity: "",
-  measurementUnit: "Pieces",
+  longerDescription: "",
+  productBarcode: "",
+  etimsRefCode: "",
   expiryDate: "",
   image: null,
   imagePreview: null,
-  tierPricing: [
-    { minQuantity: 1, maxQuantity: 3, price: "" },
-    { minQuantity: 4, maxQuantity: 11, price: "" },
-    { minQuantity: 12, maxQuantity: 999, price: "" },
-  ],
+
+  // Pricing Information
+  costPrice: "", // Excluding VAT
+  sellingPrice1: "", // Including VAT
+  sellingPrice2: "", // Including VAT
+  sellingPrice3: "", // Including VAT
+  qty1: "",
+  qty2: "",
+  qty3: "",
+  vat: "16", // Default VAT rate
+
+  // Vendor Information
+  preferredVendor1: "",
+  preferredVendor2: "",
+  vendorItemCode: "",
+
+  // Customer Incentives
+  cashbackRate: "0", // Cashback % to client
+
+  // Sales Agent Incentives
+  saCashback1stPurchase: "6", // 6% on 1st purchase
+  saCashback2ndPurchase: "4", // 4% on 2nd purchase
+  saCashback3rdPurchase: "3", // 3% on 3rd purchase
+  saCashback4thPurchase: "2", // 2% on 4th purchase
+
+  // Inventory Management
+  stockUnits: "",
+  reorderLevel: "",
+  orderLevel: "",
+  reorderActive: true,
+  alertQuantity: "",
+
+  // Quantity ranges
+  qty1Min: "1",
+  qty1Max: "3",
+  qty2Min: "4",
+  qty2Max: "11",
+  qty3Min: "12",
 }
 
-const measurementUnits = ["Pieces", "Boxes", "Sets", "Kg", "Liters", "Meters", "Reams", "Packs"]
+const uomOptions = ["PC", "PKT", "BOX", "SET", "KG", "LITERS", "METERS", "REAMS", "PACKS"]
+const vatRates = ["0", "8", "16"] // Common VAT rates
 
-export default function NewItemForm({ categories = [], onSubmit, editItem = null }) {
+export default function NewItemForm({ categories = [], vendors = [], onSubmit, editItem = null }) {
   const [formData, setFormData] = useState(initialFormState)
   const [errors, setErrors] = useState({})
   const [subCategories, setSubCategories] = useState([])
   const [isEditMode, setIsEditMode] = useState(false)
+  const [calculatedProfits, setCalculatedProfits] = useState({
+    gp1: 0,
+    np1: 0,
+    gp2: 0,
+    np2: 0,
+    gp3: 0,
+    np3: 0,
+  })
+  const [calculatedCashback, setCalculatedCashback] = useState({
+    cashback1: 0,
+    cashback2: 0,
+    cashback3: 0,
+  })
 
   // Initialize form with edit data if provided
   useEffect(() => {
@@ -65,7 +114,6 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
       setIsEditMode(true)
       setFormData({
         ...editItem,
-        tierPricing: editItem.tierPricing || initialFormState.tierPricing,
         imagePreview: editItem.image || null,
       })
     }
@@ -88,11 +136,58 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
     }
   }, [formData.category, categories])
 
+  // Calculate GP, NP, and Cashback when prices change
+  useEffect(() => {
+    const costPriceExclVat = Number.parseFloat(formData.costPrice) || 0
+    const vatRate = Number.parseFloat(formData.vat) / 100
+    const cashbackRate = Number.parseFloat(formData.cashbackRate) / 100
+
+    const calculateProfit = (sellingPriceInclVat) => {
+      const sellingPrice = Number.parseFloat(sellingPriceInclVat) || 0
+      const sellingPriceExclVat = sellingPrice / (1 + vatRate)
+      const gp = sellingPriceExclVat - costPriceExclVat
+      const gpPercentage = costPriceExclVat > 0 ? (gp / costPriceExclVat) * 100 : 0
+      const npPercentage = sellingPrice > 0 ? (gp / sellingPrice) * 100 : 0
+
+      return {
+        gp: gpPercentage.toFixed(2),
+        np: npPercentage.toFixed(2),
+      }
+    }
+
+    const calculateCashback = (sellingPriceInclVat) => {
+      const sellingPrice = Number.parseFloat(sellingPriceInclVat) || 0
+      const cashbackAmount = sellingPrice * cashbackRate
+      return cashbackAmount.toFixed(2)
+    }
+
+    setCalculatedProfits({
+      ...calculateProfit(formData.sellingPrice1),
+      gp2: calculateProfit(formData.sellingPrice2).gp,
+      np2: calculateProfit(formData.sellingPrice2).np,
+      gp3: calculateProfit(formData.sellingPrice3).gp,
+      np3: calculateProfit(formData.sellingPrice3).np,
+    })
+
+    setCalculatedCashback({
+      cashback1: calculateCashback(formData.sellingPrice1),
+      cashback2: calculateCashback(formData.sellingPrice2),
+      cashback3: calculateCashback(formData.sellingPrice3),
+    })
+  }, [
+    formData.costPrice,
+    formData.sellingPrice1,
+    formData.sellingPrice2,
+    formData.sellingPrice3,
+    formData.vat,
+    formData.cashbackRate,
+  ])
+
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value, type, checked } = e.target
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     })
 
     if (errors[name]) {
@@ -120,44 +215,24 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
     }
   }
 
-  const handleTierPricingChange = (index, field, value) => {
-    const updatedTierPricing = [...formData.tierPricing]
-    updatedTierPricing[index] = {
-      ...updatedTierPricing[index],
-      [field]: value,
-    }
+  const generateProductCode = () => {
+    // Generate alphanumeric code like A0101001
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    const randomLetter = letters[Math.floor(Math.random() * letters.length)]
+    const randomNumbers = Math.floor(Math.random() * 1000000)
+      .toString()
+      .padStart(6, "0")
+    const productCode = `${randomLetter}01${randomNumbers.slice(0, 2)}${randomNumbers.slice(2)}`
+
     setFormData({
       ...formData,
-      tierPricing: updatedTierPricing,
+      productCode: productCode,
     })
-  }
-
-  const addTierPricing = () => {
-    const newTier = {
-      minQuantity: "",
-      maxQuantity: "",
-      price: "",
-    }
-    setFormData({
-      ...formData,
-      tierPricing: [...formData.tierPricing, newTier],
-    })
-  }
-
-  const removeTierPricing = (index) => {
-    if (formData.tierPricing.length > 1) {
-      const updatedTierPricing = formData.tierPricing.filter((_, i) => i !== index)
-      setFormData({
-        ...formData,
-        tierPricing: updatedTierPricing,
-      })
-    }
   }
 
   const generateBarcode = () => {
-    // Generate a simple barcode based on item code and timestamp
     const timestamp = Date.now().toString().slice(-6)
-    const barcode = `${formData.itemCode || "ITM"}${timestamp}`
+    const barcode = `${formData.productCode || "ITM"}${timestamp}`
     setFormData({
       ...formData,
       productBarcode: barcode,
@@ -167,28 +242,13 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
   const validateForm = () => {
     const newErrors = {}
 
+    // Required fields validation
     if (!formData.productName) newErrors.productName = "Product name is required"
-    if (!formData.itemCode) newErrors.itemCode = "Item code is required"
+    if (!formData.productCode) newErrors.productCode = "Product code is required"
     if (!formData.category) newErrors.category = "Category is required"
+    if (!formData.costPrice) newErrors.costPrice = "Cost price is required"
+    if (!formData.sellingPrice1) newErrors.sellingPrice1 = "At least one selling price is required"
     if (!formData.stockUnits) newErrors.stockUnits = "Stock units is required"
-    if (!formData.retailPrice) newErrors.retailPrice = "Retail price is required"
-
-    // Validate tier pricing
-    const tierPricingErrors = []
-    formData.tierPricing.forEach((tier, index) => {
-      const tierError = {}
-      if (!tier.minQuantity) tierError.minQuantity = "Min quantity required"
-      if (!tier.maxQuantity) tierError.maxQuantity = "Max quantity required"
-      if (!tier.price) tierError.price = "Price required"
-
-      if (Object.keys(tierError).length > 0) {
-        tierPricingErrors[index] = tierError
-      }
-    })
-
-    if (tierPricingErrors.length > 0) {
-      newErrors.tierPricing = tierPricingErrors
-    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -201,16 +261,26 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
       const formattedData = {
         id: isEditMode ? editItem.id : Date.now(),
         ...formData,
-        cashbackRate: formData.cashbackRate ? Number(formData.cashbackRate) : 0,
-        retailPrice: formData.retailPrice ? Number(formData.retailPrice) : 0,
-        stockUnits: formData.stockUnits ? Number(formData.stockUnits) : 0,
-        alertQuantity: formData.alertQuantity ? Number(formData.alertQuantity) : 0,
-        tierPricing: formData.tierPricing.map((tier) => ({
-          ...tier,
-          minQuantity: Number(tier.minQuantity),
-          maxQuantity: Number(tier.maxQuantity),
-          price: Number(tier.price),
-        })),
+        // Convert string numbers to actual numbers
+        costPrice: Number.parseFloat(formData.costPrice) || 0,
+        sellingPrice1: Number.parseFloat(formData.sellingPrice1) || 0,
+        sellingPrice2: Number.parseFloat(formData.sellingPrice2) || 0,
+        sellingPrice3: Number.parseFloat(formData.sellingPrice3) || 0,
+        qty1: Number.parseInt(formData.qty1) || 0,
+        qty2: Number.parseInt(formData.qty2) || 0,
+        qty3: Number.parseInt(formData.qty3) || 0,
+        vat: Number.parseFloat(formData.vat) || 0,
+        cashbackRate: Number.parseFloat(formData.cashbackRate) || 0,
+        saCashback1stPurchase: Number.parseFloat(formData.saCashback1stPurchase) || 0,
+        saCashback2ndPurchase: Number.parseFloat(formData.saCashback2ndPurchase) || 0,
+        saCashback3rdPurchase: Number.parseFloat(formData.saCashback3rdPurchase) || 0,
+        saCashback4thPurchase: Number.parseFloat(formData.saCashback4thPurchase) || 0,
+        stockUnits: Number.parseInt(formData.stockUnits) || 0,
+        reorderLevel: Number.parseInt(formData.reorderLevel) || 0,
+        orderLevel: Number.parseInt(formData.orderLevel) || 0,
+        alertQuantity: Number.parseInt(formData.alertQuantity) || 0,
+        calculatedProfits,
+        calculatedCashback,
         createdAt: isEditMode ? editItem.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
@@ -230,14 +300,14 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
   }
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto" }}>
       <Paper sx={{ p: 4, mb: 4, borderRadius: 3, boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)" }}>
         <Box sx={{ mb: 4, textAlign: "center" }}>
           <Typography variant="h4" fontWeight="bold" color="#1976d2" gutterBottom>
             {isEditMode ? "Edit Product" : "Add New Product"}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            {isEditMode ? "Update product information" : "Fill in the details to add a new product to your inventory"}
+            {isEditMode ? "Update product information" : "Complete product information for inventory management"}
           </Typography>
         </Box>
 
@@ -269,29 +339,103 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
                   <TextField
                     fullWidth
                     required
-                    label="Item Code"
-                    name="itemCode"
-                    value={formData.itemCode}
+                    label="Product Code"
+                    name="productCode"
+                    value={formData.productCode}
                     onChange={handleChange}
-                    placeholder="e.g., SW001, KM001"
+                    placeholder="e.g., A0101001"
                     variant="outlined"
-                    error={!!errors.itemCode}
-                    helperText={errors.itemCode}
+                    error={!!errors.productCode}
+                    helperText={errors.productCode}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Button size="small" onClick={generateProductCode} sx={{ textTransform: "none" }}>
+                            Generate
+                          </Button>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
+                </Grid>
+
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth required>
+                    <InputLabel>UOM</InputLabel>
+                    <Select name="uom" value={formData.uom} onChange={handleChange} label="UOM">
+                      {uomOptions.map((unit) => (
+                        <MenuItem key={unit} value={unit}>
+                          {unit}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Pack Size"
+                    name="packSize"
+                    value={formData.packSize}
+                    onChange={handleChange}
+                    placeholder="e.g., 12pc"
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>VAT Rate</InputLabel>
+                    <Select name="vat" value={formData.vat} onChange={handleChange} label="VAT Rate">
+                      {vatRates.map((rate) => (
+                        <MenuItem key={rate} value={rate}>
+                          {rate}%
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth required error={!!errors.category}>
-                    <InputLabel></InputLabel>
+                    <InputLabel id="category-label">Category</InputLabel>
                     <Select
+                      labelId="category-label"
                       name="category"
                       value={formData.category}
                       onChange={handleChange}
                       label="Category"
                       displayEmpty
+                      renderValue={(selected) => {
+                        if (!selected) {
+                          return <em style={{ color: "#9e9e9e", fontStyle: "normal" }}>Select Category</em>
+                        }
+                        return selected
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: 300,
+                            width: "auto",
+                            minWidth: 200,
+                          },
+                        },
+                      }}
+                      sx={{
+                        "& .MuiSelect-select": {
+                          minHeight: "1.4375em",
+                          display: "flex",
+                          alignItems: "center",
+                        },
+                        "& .MuiInputLabel-root": {
+                          transform: "translate(14px, 16px) scale(1)",
+                        },
+                        "& .MuiInputLabel-shrink": {
+                          transform: "translate(14px, -9px) scale(0.75)",
+                        },
+                      }}
                     >
                       <MenuItem value="">
-                        <em>Category</em>
+                        <em>Select Category</em>
                       </MenuItem>
                       {categories.map((category) => (
                         <MenuItem key={category.id} value={category.name}>
@@ -304,14 +448,54 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
-                    <InputLabel></InputLabel>
+                    <InputLabel id="subcategory-label">SubCategory</InputLabel>
                     <Select
+                      labelId="subcategory-label"
                       name="subCategory"
                       value={formData.subCategory}
                       onChange={handleChange}
                       label="SubCategory"
                       displayEmpty
                       disabled={!formData.category || subCategories.length === 0}
+                      renderValue={(selected) => {
+                        if (!selected) {
+                          return (
+                            <em
+                              style={{
+                                color: !formData.category || subCategories.length === 0 ? "#c0c0c0" : "#9e9e9e",
+                                fontStyle: "normal",
+                              }}
+                            >
+                              {!formData.category || subCategories.length === 0
+                                ? "Select Category First"
+                                : "Select SubCategory"}
+                            </em>
+                          )
+                        }
+                        return selected
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: 300,
+                            width: "auto",
+                            minWidth: 200,
+                          },
+                        },
+                      }}
+                      sx={{
+                        "& .MuiSelect-select": {
+                          minHeight: "1.4375em",
+                          display: "flex",
+                          alignItems: "center",
+                        },
+                        "& .MuiInputLabel-root": {
+                          transform: "translate(14px, 16px) scale(1)",
+                        },
+                        "& .MuiInputLabel-shrink": {
+                          transform: "translate(14px, -9px) scale(0.75)",
+                        },
+                      }}
                     >
                       <MenuItem value="">
                         <em>Select SubCategory</em>
@@ -325,7 +509,7 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Product Barcode"
@@ -350,24 +534,49 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
                     }}
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Description"
+                    label="eTIMS Ref Code/Number"
+                    name="etimsRefCode"
+                    value={formData.etimsRefCode}
+                    onChange={handleChange}
+                    placeholder="Enter eTIMS reference"
+                    variant="outlined"
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Short Description"
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
                     multiline
-                    rows={3}
+                    rows={2}
                     variant="outlined"
-                    placeholder="Enter detailed product description"
+                    placeholder="Brief product description for listings"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Detailed Description"
+                    name="longerDescription"
+                    value={formData.longerDescription}
+                    onChange={handleChange}
+                    multiline
+                    rows={2}
+                    variant="outlined"
+                    placeholder="Detailed product description"
                   />
                 </Grid>
               </Grid>
             </AccordionDetails>
           </Accordion>
 
-          {/* SECTION 2: PRICING */}
+          {/* SECTION 2: PRICING INFORMATION */}
           <Accordion defaultExpanded sx={{ mb: 3, borderRadius: 2, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
             <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: "#f8f9fa", borderRadius: "8px 8px 0 0" }}>
               <Typography variant="h6" fontWeight="600" color="#1976d2">
@@ -380,23 +589,23 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
                   <TextField
                     fullWidth
                     required
-                    label="Retail Price (Supplier)"
-                    name="retailPrice"
+                    label="Cost Price (Excl. VAT)"
+                    name="costPrice"
                     type="number"
-                    value={formData.retailPrice}
+                    value={formData.costPrice}
                     onChange={handleChange}
                     InputProps={{
                       startAdornment: <InputAdornment position="start">KSh</InputAdornment>,
                     }}
                     variant="outlined"
-                    error={!!errors.retailPrice}
-                    helperText={errors.retailPrice || "This price is hidden from customers"}
+                    error={!!errors.costPrice}
+                    helperText={errors.costPrice || "Purchase price excluding VAT"}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Cashback Rate"
+                    label="Customer Cashback Rate"
                     name="cashbackRate"
                     type="number"
                     value={formData.cashbackRate}
@@ -405,96 +614,329 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
                       endAdornment: <InputAdornment position="end">%</InputAdornment>,
                     }}
                     variant="outlined"
-                    error={!!errors.cashbackRate}
-                    helperText={errors.cashbackRate}
+                    helperText="Fixed cashback percentage (e.g., 3%) - applies to all quantities"
                   />
                 </Grid>
+
+                {/* Selling Prices and Quantities */}
                 <Grid item xs={12}>
-                  <Typography variant="subtitle1" fontWeight="600" gutterBottom>
-                    Bulk-Tier Pricing System
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mb: 2 }}>
-                    Set different customer prices based on quantity ranges
-                  </Typography>
                   <TableContainer component={Paper} variant="outlined">
                     <Table size="small">
                       <TableHead>
                         <TableRow sx={{ bgcolor: "#f8f9fa" }}>
-                          <TableCell sx={{ fontWeight: 600 }}>Min Qty</TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>Max Qty</TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>Customer Price (KSh)</TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
+                          <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>Tier</TableCell>
+                          <TableCell sx={{ fontWeight: 600, minWidth: 200 }}>Quantity Range</TableCell>
+                          <TableCell sx={{ fontWeight: 600, minWidth: 160 }}>Selling Price (KSh)</TableCell>
+                          <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>GP %</TableCell>
+                          <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>NP %</TableCell>
+                          <TableCell sx={{ fontWeight: 600, minWidth: 120 }}>Cashback Earned</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {formData.tierPricing.map((tier, index) => (
-                          <TableRow key={index}>
-                            <TableCell>
+                        {/* Tier 1 */}
+                        <TableRow>
+                          <TableCell>
+                            <Chip label="Tier 1" color="primary" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                               <TextField
                                 type="number"
-                                value={tier.minQuantity}
-                                onChange={(e) => handleTierPricingChange(index, "minQuantity", e.target.value)}
+                                value={formData.qty1Min || "1"}
+                                onChange={(e) => setFormData({ ...formData, qty1Min: e.target.value })}
                                 size="small"
-                                error={!!errors.tierPricing?.[index]?.minQuantity}
-                                sx={{ width: 80 }}
+                                placeholder="Min"
+                                sx={{ width: 70 }}
+                                inputProps={{ min: 1 }}
                               />
-                            </TableCell>
-                            <TableCell>
+                              <Typography variant="body2">to</Typography>
                               <TextField
                                 type="number"
-                                value={tier.maxQuantity}
-                                onChange={(e) => handleTierPricingChange(index, "maxQuantity", e.target.value)}
+                                value={formData.qty1Max || "3"}
+                                onChange={(e) => setFormData({ ...formData, qty1Max: e.target.value })}
                                 size="small"
-                                error={!!errors.tierPricing?.[index]?.maxQuantity}
-                                sx={{ width: 80 }}
+                                placeholder="Max"
+                                sx={{ width: 70 }}
+                                inputProps={{ min: 1 }}
                               />
-                            </TableCell>
-                            <TableCell>
+                              <Typography variant="caption" color="text.secondary">
+                                pieces
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              type="number"
+                              value={formData.sellingPrice1}
+                              onChange={handleChange}
+                              name="sellingPrice1"
+                              size="small"
+                              InputProps={{
+                                startAdornment: <InputAdornment position="start">KSh</InputAdornment>,
+                              }}
+                              error={!!errors.sellingPrice1}
+                              sx={{ width: 140 }}
+                              placeholder="e.g., 100"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={`${calculatedProfits.gp || 0}%`} color="success" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={`${calculatedProfits.np || 0}%`} color="info" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" color="primary" fontWeight="600">
+                              KSh {calculatedCashback.cashback1 || 0}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Tier 2 */}
+                        <TableRow>
+                          <TableCell>
+                            <Chip label="Tier 2" color="secondary" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                               <TextField
                                 type="number"
-                                value={tier.price}
-                                onChange={(e) => handleTierPricingChange(index, "price", e.target.value)}
+                                value={formData.qty2Min || "4"}
+                                onChange={(e) => setFormData({ ...formData, qty2Min: e.target.value })}
                                 size="small"
-                                InputProps={{
-                                  startAdornment: <InputAdornment position="start">KSh</InputAdornment>,
-                                }}
-                                error={!!errors.tierPricing?.[index]?.price}
-                                sx={{ width: 120 }}
+                                placeholder="Min"
+                                sx={{ width: 70 }}
+                                inputProps={{ min: 1 }}
                               />
-                            </TableCell>
-                            <TableCell>
-                              <IconButton
-                                onClick={() => removeTierPricing(index)}
-                                disabled={formData.tierPricing.length <= 1}
-                                color="error"
+                              <Typography variant="body2">to</Typography>
+                              <TextField
+                                type="number"
+                                value={formData.qty2Max || "11"}
+                                onChange={(e) => setFormData({ ...formData, qty2Max: e.target.value })}
                                 size="small"
-                              >
-                                <Delete />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                                placeholder="Max"
+                                sx={{ width: 70 }}
+                                inputProps={{ min: 1 }}
+                              />
+                              <Typography variant="caption" color="text.secondary">
+                                pieces
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              type="number"
+                              value={formData.sellingPrice2}
+                              onChange={handleChange}
+                              name="sellingPrice2"
+                              size="small"
+                              InputProps={{
+                                startAdornment: <InputAdornment position="start">KSh</InputAdornment>,
+                              }}
+                              sx={{ width: 140 }}
+                              placeholder="e.g., 90"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={`${calculatedProfits.gp2 || 0}%`} color="success" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={`${calculatedProfits.np2 || 0}%`} color="info" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" color="primary" fontWeight="600">
+                              KSh {calculatedCashback.cashback2 || 0}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Tier 3 */}
+                        <TableRow>
+                          <TableCell>
+                            <Chip label="Tier 3" color="warning" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                              <TextField
+                                type="number"
+                                value={formData.qty3Min || "12"}
+                                onChange={(e) => setFormData({ ...formData, qty3Min: e.target.value })}
+                                size="small"
+                                placeholder="Min"
+                                sx={{ width: 70 }}
+                                inputProps={{ min: 1 }}
+                              />
+                              <Typography variant="body2">and above</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                pieces
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              type="number"
+                              value={formData.sellingPrice3}
+                              onChange={handleChange}
+                              name="sellingPrice3"
+                              size="small"
+                              InputProps={{
+                                startAdornment: <InputAdornment position="start">KSh</InputAdornment>,
+                              }}
+                              sx={{ width: 140 }}
+                              placeholder="e.g., 80"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={`${calculatedProfits.gp3 || 0}%`} color="success" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={`${calculatedProfits.np3 || 0}%`} color="info" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" color="primary" fontWeight="600">
+                              KSh {calculatedCashback.cashback3 || 0}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
                       </TableBody>
                     </Table>
                   </TableContainer>
-                  <Button
-                    startIcon={<Add />}
-                    onClick={addTierPricing}
-                    sx={{ mt: 2, textTransform: "none" }}
-                    variant="outlined"
-                  >
-                    Add Pricing Tier
-                  </Button>
+
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                    Cashback rate applies to all purchases regardless of quantity
+                  </Typography>
                 </Grid>
               </Grid>
             </AccordionDetails>
           </Accordion>
 
-          {/* SECTION 3: ADDITIONAL INFORMATION */}
+          {/* SECTION 3: VENDOR INFORMATION */}
           <Accordion defaultExpanded sx={{ mb: 3, borderRadius: 2, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
             <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: "#f8f9fa", borderRadius: "8px 8px 0 0" }}>
               <Typography variant="h6" fontWeight="600" color="#1976d2">
-                📦 Additional Information
+                🏢 Vendor Information
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 3 }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Preferred Vendor 1"
+                    name="preferredVendor1"
+                    value={formData.preferredVendor1}
+                    onChange={handleChange}
+                    placeholder="Primary vendor name"
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Preferred Vendor 2"
+                    name="preferredVendor2"
+                    value={formData.preferredVendor2}
+                    onChange={handleChange}
+                    placeholder="Secondary vendor name"
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Vendor Item Code"
+                    name="vendorItemCode"
+                    value={formData.vendorItemCode}
+                    onChange={handleChange}
+                    placeholder="Vendor's product code"
+                    variant="outlined"
+                  />
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* SECTION 4: SALES AGENT INCENTIVES */}
+          <Accordion defaultExpanded sx={{ mb: 3, borderRadius: 2, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+            <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: "#f8f9fa", borderRadius: "8px 8px 0 0" }}>
+              <Typography variant="h6" fontWeight="600" color="#1976d2">
+                🎯 Sales Agent Incentives
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 3 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mb: 2 }}>
+                Configure cashback percentages for sales agents based on customer purchase sequence
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    label="1st Purchase Cashback"
+                    name="saCashback1stPurchase"
+                    type="number"
+                    value={formData.saCashback1stPurchase}
+                    onChange={handleChange}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                    }}
+                    variant="outlined"
+                    helperText="Default: 6%"
+                  />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    label="2nd Purchase Cashback"
+                    name="saCashback2ndPurchase"
+                    type="number"
+                    value={formData.saCashback2ndPurchase}
+                    onChange={handleChange}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                    }}
+                    variant="outlined"
+                    helperText="Default: 4%"
+                  />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    label="3rd Purchase Cashback"
+                    name="saCashback3rdPurchase"
+                    type="number"
+                    value={formData.saCashback3rdPurchase}
+                    onChange={handleChange}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                    }}
+                    variant="outlined"
+                    helperText="Default: 3%"
+                  />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    label="4th+ Purchase Cashback"
+                    name="saCashback4thPurchase"
+                    type="number"
+                    value={formData.saCashback4thPurchase}
+                    onChange={handleChange}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                    }}
+                    variant="outlined"
+                    helperText="Default: 2%"
+                  />
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* SECTION 5: INVENTORY & ADDITIONAL INFO */}
+          <Accordion defaultExpanded sx={{ mb: 3, borderRadius: 2, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+            <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: "#f8f9fa", borderRadius: "8px 8px 0 0" }}>
+              <Typography variant="h6" fontWeight="600" color="#1976d2">
+                📦 Inventory & Additional Information
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ p: 3 }}>
@@ -505,7 +947,7 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
                       <TextField
                         fullWidth
                         required
-                        label="Stock Quantity"
+                        label="Current Stock Quantity"
                         name="stockUnits"
                         type="number"
                         value={formData.stockUnits}
@@ -528,21 +970,41 @@ export default function NewItemForm({ categories = [], onSubmit, editItem = null
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
-                      <FormControl fullWidth required>
-                        <InputLabel>Measurement Unit</InputLabel>
-                        <Select
-                          name="measurementUnit"
-                          value={formData.measurementUnit}
-                          onChange={handleChange}
-                          label="Measurement Unit"
-                        >
-                          {measurementUnits.map((unit) => (
-                            <MenuItem key={unit} value={unit}>
-                              {unit}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      <TextField
+                        fullWidth
+                        label="Reorder Level"
+                        name="reorderLevel"
+                        type="number"
+                        value={formData.reorderLevel}
+                        onChange={handleChange}
+                        variant="outlined"
+                        helperText="Automatic reorder trigger point"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Order Level"
+                        name="orderLevel"
+                        type="number"
+                        value={formData.orderLevel}
+                        onChange={handleChange}
+                        variant="outlined"
+                        helperText="Standard order quantity"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={formData.reorderActive}
+                            onChange={handleChange}
+                            name="reorderActive"
+                            color="primary"
+                          />
+                        }
+                        label="Auto Reorder Active"
+                      />
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <TextField
