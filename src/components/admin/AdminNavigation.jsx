@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import {
   AppBar,
   Toolbar,
   Typography,
   Box,
   IconButton,
-  Badge,
   Avatar,
   Menu,
   MenuItem,
@@ -34,35 +33,32 @@ import {
   LocalShipping as SuppliersIcon,
   People,
   Search as SearchIcon,
-  Wallet as WalletIcon,
   AccountCircle,
   Settings,
   ExitToApp,
   Add as AddIcon,
   List as ListIcon,
   KeyboardArrowDown,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Visibility as ViewIcon,
   Store as StoreIcon,
 } from "@mui/icons-material"
 import { useNavigate } from "react-router-dom"
 import FirstCraftLogo from "../../assets/images/FirstCraft-logo.png"
 
-// Styled components for e-commerce admin theme
+// Enhanced search bar styling with improved visibility
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
   borderRadius: "25px",
-  backgroundColor: "#f8f9fa",
-  border: "2px solid #e3f2fd",
+  backgroundColor: "rgba(255, 255, 255, 0.15)",
+  border: "1px solid rgba(255, 255, 255, 0.2)",
   "&:hover": {
-    backgroundColor: "#e3f2fd",
-    borderColor: "#2196f3",
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    border: "1px solid rgba(255, 255, 255, 0.4)",
   },
   "&:focus-within": {
-    backgroundColor: "#e3f2fd",
-    borderColor: "#2196f3",
-    boxShadow: "0 0 0 3px rgba(33, 150, 243, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    border: "1px solid rgba(255, 255, 255, 0.6)",
+    boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.2)",
   },
   marginRight: theme.spacing(2),
   marginLeft: 0,
@@ -83,11 +79,11 @@ const SearchIconWrapper = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  color: "#2196f3",
+  color: "rgba(255, 255, 255, 0.8)",
 }))
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: "#333",
+  color: "white",
   width: "100%",
   "& .MuiInputBase-input": {
     padding: theme.spacing(1.5, 1, 1.5, 0),
@@ -98,38 +94,39 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     fontSize: "0.95rem",
     fontWeight: 500,
     "&::placeholder": {
-      color: "#666",
+      color: "rgba(255, 255, 255, 0.7)",
       opacity: 1,
       fontWeight: 400,
     },
   },
 }))
 
-// E-commerce admin navigation button with enhanced styling
+// Enhanced admin navigation button with proper white styling
 const AdminNavButton = styled(Button)(({ theme, active }) => ({
-  color: active ? "#1976d2" : "#555",
+  color: active ? "#1976d2" : "rgba(255, 255, 255, 0.95)",
   textTransform: "none",
   fontSize: "0.9rem",
-  fontWeight: active ? 600 : 500,
+  fontWeight: active ? 700 : 500,
   fontFamily: "'Poppins', sans-serif",
-  minHeight: 50,
-  padding: "10px 20px",
-  margin: "0 6px",
-  borderRadius: "12px",
+  minHeight: 48,
+  padding: "12px 24px",
+  margin: "0 4px",
+  borderRadius: "25px",
   position: "relative",
   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  backgroundColor: active ? "#e3f2fd" : "transparent",
-  border: active ? "2px solid #2196f3" : "2px solid transparent",
+  backgroundColor: active ? "white" : "transparent",
+  boxShadow: active ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
+  border: active ? "1px solid rgba(255,255,255,0.2)" : "1px solid transparent",
   "&:hover": {
     color: "#1976d2",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     transform: "translateY(-2px)",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-    border: "2px solid #2196f3",
+    boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+    border: "1px solid rgba(255,255,255,0.3)",
   },
   "&.has-dropdown": {
     "&:hover": {
-      backgroundColor: "#e3f2fd",
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
     },
   },
   "& .MuiButton-startIcon": {
@@ -140,37 +137,49 @@ const AdminNavButton = styled(Button)(({ theme, active }) => ({
   },
 }))
 
-// Enhanced dropdown styling for e-commerce theme
+// Enhanced dropdown with maximum visibility and proper z-index
 const StyledDropdownPaper = styled(Paper)(({ theme }) => ({
   backgroundColor: "white",
   color: "#333",
-  minWidth: 220,
-  maxWidth: 280,
-  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
-  border: "1px solid #e0e0e0",
-  borderRadius: "12px",
+  minWidth: 260,
+  maxWidth: 320,
+  boxShadow: "0 12px 48px rgba(0, 0, 0, 0.3)",
+  border: "2px solid #e0e0e0",
+  borderRadius: "16px",
   fontFamily: "'Poppins', sans-serif",
   marginTop: "12px",
   overflow: "hidden",
+  zIndex: 9999,
+  position: "relative",
 }))
 
 const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
   fontFamily: "'Poppins', sans-serif",
-  fontSize: "0.875rem",
+  fontSize: "0.9rem",
   fontWeight: 500,
-  padding: "14px 20px",
+  padding: "16px 24px",
   transition: "all 0.2s ease-in-out",
-  borderBottom: "1px solid #f5f5f5",
+  borderBottom: "1px solid #f0f0f0",
+  minHeight: "60px",
   "&:last-child": {
     borderBottom: "none",
   },
   "&:hover": {
     backgroundColor: "#f8f9fa",
-    transform: "translateX(6px)",
-    paddingLeft: "26px",
+    transform: "translateX(8px)",
+    paddingLeft: "32px",
+    boxShadow: "inset 4px 0 0 #2196f3",
   },
   "& .MuiListItemIcon-root": {
-    minWidth: "36px",
+    minWidth: "48px",
+  },
+  "& .MuiListItemText-primary": {
+    fontWeight: 600,
+    fontSize: "0.95rem",
+  },
+  "& .MuiListItemText-secondary": {
+    fontSize: "0.8rem",
+    color: "#666",
   },
 }))
 
@@ -186,31 +195,131 @@ const AdminNavigation = ({
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"))
 
+  // State management for dropdowns and menus
   const [anchorEl, setAnchorEl] = useState(null)
-  const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null)
-  const [itemMasterDropdownOpen, setItemMasterDropdownOpen] = useState(false)
-  const [categoriesDropdownOpen, setCategoriesDropdownOpen] = useState(false)
-  const [salesDropdownOpen, setSalesDropdownOpen] = useState(false)
-  const [inventoryDropdownOpen, setInventoryDropdownOpen] = useState(false)
-  const [suppliersDropdownOpen, setSuppliersDropdownOpen] = useState(false)
-  const [agentsDropdownOpen, setAgentsDropdownOpen] = useState(false)
+  const [dropdownStates, setDropdownStates] = useState({
+    itemMaster: false,
+    categories: false,
+    sales: false,
+    inventory: false,
+    suppliers: false,
+    agents: false,
+  })
 
-  const itemMasterRef = useRef(null)
-  const categoriesRef = useRef(null)
-  const salesRef = useRef(null)
-  const inventoryRef = useRef(null)
-  const suppliersRef = useRef(null)
-  const agentsRef = useRef(null)
+  // Refs for dropdown positioning
+  const dropdownRefs = {
+    itemMaster: useRef(null),
+    categories: useRef(null),
+    sales: useRef(null),
+    inventory: useRef(null),
+    suppliers: useRef(null),
+    agents: useRef(null),
+  }
 
   const isMenuOpen = Boolean(anchorEl)
 
+  // Enhanced dropdown handlers with proper state management
+  const handleDropdownToggle = useCallback((section, isOpen) => {
+    setDropdownStates((prev) => ({
+      ...prev,
+      [section]: isOpen,
+    }))
+  }, [])
+
+  const handleDropdownClose = useCallback((section) => {
+    setDropdownStates((prev) => ({
+      ...prev,
+      [section]: false,
+    }))
+  }, [])
+
+  const handleAllDropdownsClose = useCallback(() => {
+    setDropdownStates({
+      itemMaster: false,
+      categories: false,
+      sales: false,
+      inventory: false,
+      suppliers: false,
+      agents: false,
+    })
+  }, [])
+
+  // Enhanced CRUD operation handlers with detailed logging
+  const handleCRUDAction = useCallback(
+    (action, section, data = null) => {
+      console.log(`🔄 CRUD Action: ${action} on ${section}`, data)
+
+      // Close all dropdowns immediately
+      handleAllDropdownsClose()
+
+      try {
+        // Handle navigation based on action and section
+        switch (section) {
+          case "itemMaster":
+            console.log(`📍 Navigating to Item Master - Action: ${action}`)
+            onTabChange(null, 1) // Switch to Item Master tab
+
+            // Use setTimeout to ensure tab change completes first
+            setTimeout(() => {
+              if (action === "create" && onItemMasterSubTabChange) {
+                console.log("🆕 Switching to New Item sub-tab")
+                onItemMasterSubTabChange(null, 0) // Switch to New Item sub-tab
+              } else if (action === "read" && onItemMasterSubTabChange) {
+                console.log("📋 Switching to Manage Items sub-tab")
+                onItemMasterSubTabChange(null, 1) // Switch to Manage Items sub-tab
+              }
+            }, 150)
+            break
+
+          case "categories":
+            console.log(`📍 Navigating to Categories - Action: ${action}`)
+            onTabChange(null, 2)
+            break
+
+          case "sales":
+            console.log(`📍 Navigating to Sales - Action: ${action}`)
+            onTabChange(null, 3)
+            break
+
+          case "inventory":
+            console.log(`📍 Navigating to Inventory - Action: ${action}`)
+            onTabChange(null, 4)
+            break
+
+          case "suppliers":
+            console.log(`📍 Navigating to Suppliers - Action: ${action}`)
+            onTabChange(null, 5)
+            break
+
+          case "agents":
+            console.log(`📍 Navigating to Sales Agents - Action: ${action}`)
+            onTabChange(null, 6)
+            break
+
+          default:
+            console.warn(`⚠️ Unknown section: ${section}`)
+        }
+
+        // Call CRUD operation handler if provided
+        if (onCRUDOperation) {
+          onCRUDOperation(action, section, data)
+        }
+
+        console.log(`✅ Navigation completed for ${section}`)
+      } catch (error) {
+        console.error(`❌ Error in CRUD action:`, error)
+      }
+    },
+    [onTabChange, onItemMasterSubTabChange, onCRUDOperation, handleAllDropdownsClose],
+  )
+
+  // Profile menu handlers
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget)
   }
 
   const handleMenuClose = () => {
     setAnchorEl(null)
-    setMobileMenuAnchorEl(null)
   }
 
   const handleLogout = () => {
@@ -222,84 +331,13 @@ const AdminNavigation = ({
     navigate("/")
   }
 
-  const handleNavigate = (path) => {
-    navigate(path)
-  }
-
-  // Enhanced CRUD operation handlers with proper navigation
-  const handleCRUDAction = (action, section, data = null) => {
-    console.log(`CRUD Action: ${action} on ${section}`, data)
-
-    // Handle navigation based on action and section
-    switch (section) {
-      case "itemMaster":
-        if (action === "create") {
-          onTabChange(null, 1) // Switch to Item Master tab
-          if (onItemMasterSubTabChange) {
-            onItemMasterSubTabChange(null, 0) // Switch to New Item sub-tab
-          }
-        } else if (action === "read") {
-          onTabChange(null, 1) // Switch to Item Master tab
-          if (onItemMasterSubTabChange) {
-            onItemMasterSubTabChange(null, 1) // Switch to Manage Items sub-tab
-          }
-        }
-        break
-      case "categories":
-        onTabChange(null, 2) // Switch to Categories tab
-        break
-      case "sales":
-        onTabChange(null, 3) // Switch to Sales tab
-        break
-      case "inventory":
-        onTabChange(null, 4) // Switch to Inventory tab
-        break
-      case "suppliers":
-        onTabChange(null, 5) // Switch to Suppliers tab
-        break
-      case "agents":
-        onTabChange(null, 6) // Switch to Sales Agents tab
-        break
-    }
-
-    if (onCRUDOperation) {
-      onCRUDOperation(action, section, data)
-    }
-  }
-
-  // Dropdown handlers for all sections
-  const handleDropdownHover = (section, open) => {
-    switch (section) {
-      case "itemMaster":
-        setItemMasterDropdownOpen(open)
-        break
-      case "categories":
-        setCategoriesDropdownOpen(open)
-        break
-      case "sales":
-        setSalesDropdownOpen(open)
-        break
-      case "inventory":
-        setInventoryDropdownOpen(open)
-        break
-      case "suppliers":
-        setSuppliersDropdownOpen(open)
-        break
-      case "agents":
-        setAgentsDropdownOpen(open)
-        break
-    }
-  }
-
-  const handleDropdownClose = (section) => {
-    handleDropdownHover(section, false)
-  }
-
   const handleTabClick = (tabIndex) => {
+    console.log(`🎯 Direct tab click: ${tabIndex}`)
+    handleAllDropdownsClose()
     onTabChange(null, tabIndex)
   }
 
-  // Enhanced CRUD menu items for different sections
+  // Enhanced dropdown renderer with improved functionality
   const renderCRUDDropdown = (section, isOpen, anchorRef, items) => (
     <Popper
       open={isOpen}
@@ -308,7 +346,31 @@ const AdminNavigation = ({
       placement="bottom-start"
       transition
       disablePortal
-      sx={{ zIndex: 1300 }}
+      sx={{
+        zIndex: 9999,
+        position: "fixed",
+      }}
+      modifiers={[
+        {
+          name: "offset",
+          options: {
+            offset: [0, 12],
+          },
+        },
+        {
+          name: "preventOverflow",
+          options: {
+            boundary: "viewport",
+            padding: 8,
+          },
+        },
+        {
+          name: "flip",
+          options: {
+            fallbackPlacements: ["bottom-end", "top-start", "top-end"],
+          },
+        },
+      ]}
     >
       {({ TransitionProps, placement }) => (
         <Grow
@@ -316,27 +378,21 @@ const AdminNavigation = ({
           style={{
             transformOrigin: placement === "bottom-start" ? "left top" : "left bottom",
           }}
+          timeout={300}
         >
-          <StyledDropdownPaper>
+          <StyledDropdownPaper elevation={24}>
             <ClickAwayListener onClickAway={() => handleDropdownClose(section)}>
-              <MenuList autoFocusItem={isOpen} id={`${section}-menu`}>
+              <MenuList autoFocusItem={isOpen} id={`${section}-menu`} sx={{ py: 1 }}>
                 {items.map((item, index) => (
                   <StyledMenuItem
-                    key={index}
+                    key={`${section}-${index}`}
                     onClick={() => {
+                      console.log(`🖱️ Dropdown item clicked: ${item.label} in ${section}`)
                       handleCRUDAction(item.action, section, item.data)
-                      handleDropdownClose(section)
                     }}
                   >
                     <ListItemIcon>{item.icon}</ListItemIcon>
-                    <ListItemText
-                      primary={item.label}
-                      secondary={item.description}
-                      secondaryTypographyProps={{
-                        fontSize: "0.75rem",
-                        color: "#666",
-                      }}
-                    />
+                    <ListItemText primary={item.label} secondary={item.description} />
                   </StyledMenuItem>
                 ))}
               </MenuList>
@@ -347,6 +403,7 @@ const AdminNavigation = ({
     </Popper>
   )
 
+  // Profile menu renderer
   const menuId = "primary-search-account-menu"
   const renderMenu = (
     <Menu
@@ -387,19 +444,24 @@ const AdminNavigation = ({
     </Menu>
   )
 
+  // Debug logging for active tab changes
+  useEffect(() => {
+    console.log(`🎯 Active tab changed to: ${activeTab}`)
+  }, [activeTab])
+
   return (
     <>
-      {/* Single E-commerce Admin Header */}
+      {/* Enhanced Admin Header with improved styling */}
       <AppBar
         position="static"
         sx={{
-          bgcolor: "white",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-          borderBottom: "1px solid #e0e0e0",
+          bgcolor: "#1976d2",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
         }}
       >
-        <Toolbar sx={{ minHeight: "70px !important", px: { xs: 2, sm: 3, md: 4 } }}>
-          {/* Enhanced Logo with E-commerce Branding */}
+        <Toolbar sx={{ minHeight: "64px !important", px: { xs: 2, sm: 3, md: 4 } }}>
+          {/* Logo */}
           <Box
             sx={{
               display: "flex",
@@ -417,37 +479,10 @@ const AdminNavigation = ({
               src={FirstCraftLogo}
               alt="FirstCraft Logo"
               sx={{
-                height: 45,
+                height: 40,
                 mr: 2,
               }}
             />
-            <Box>
-              <Typography
-                variant="h5"
-                component="div"
-                sx={{
-                  fontWeight: 700,
-                  color: "#1976d2",
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: "1.4rem",
-                  lineHeight: 1,
-                }}
-              >
-                FirstCraft
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: "#666",
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                  letterSpacing: "0.5px",
-                }}
-              >
-                E-COMMERCE ADMIN
-              </Typography>
-            </Box>
           </Box>
 
           {/* Enhanced Search Bar */}
@@ -463,7 +498,7 @@ const AdminNavigation = ({
 
           <Box sx={{ flexGrow: 1 }} />
 
-          {/* Enhanced Desktop Navigation Icons */}
+          {/* Navigation Icons */}
           <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 2 }}>
             <IconButton
               size="large"
@@ -471,77 +506,35 @@ const AdminNavigation = ({
               onClick={handleNavigateHome}
               title="Go to Customer Store"
               sx={{
-                color: "#666",
+                color: "rgba(255, 255, 255, 0.9)",
                 transition: "all 0.3s ease-in-out",
                 "&:hover": {
-                  backgroundColor: "#e3f2fd",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
                   transform: "translateY(-2px)",
-                  color: "#1976d2",
+                  color: "white",
                 },
               }}
             >
               <StoreIcon />
             </IconButton>
 
-            <IconButton
-              size="large"
-              color="inherit"
-              onClick={() => handleNavigate("/cart")}
-              sx={{
-                color: "#666",
-                transition: "all 0.3s ease-in-out",
-                "&:hover": {
-                  backgroundColor: "#e3f2fd",
-                  transform: "translateY(-2px)",
-                  color: "#1976d2",
-                },
-              }}
-            >
-              <Badge badgeContent={4} color="error">
-                <ShoppingCart />
-              </Badge>
-            </IconButton>
-
-            <Button
-              color="inherit"
-              startIcon={<WalletIcon />}
-              onClick={() => handleNavigate("/wallet")}
-              sx={{
-                ml: 1,
-                color: "#666",
-                textTransform: "none",
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 500,
-                borderRadius: "10px",
-                px: 2,
-                transition: "all 0.3s ease-in-out",
-                "&:hover": {
-                  backgroundColor: "#e3f2fd",
-                  transform: "translateY(-2px)",
-                  color: "#1976d2",
-                },
-              }}
-            >
-              E-Wallet
-            </Button>
-
             <Box sx={{ display: "flex", alignItems: "center", ml: 3 }}>
               <Box sx={{ textAlign: "right", mr: 2 }}>
                 <Typography
                   variant="body2"
                   sx={{
-                    color: "#333",
+                    color: "white",
                     fontFamily: "'Poppins', sans-serif",
                     fontWeight: 600,
                     lineHeight: 1,
                   }}
                 >
-                  {currentUser?.username || "Administrator"}
+                  {currentUser?.username || "admin"}
                 </Typography>
                 <Typography
                   variant="caption"
                   sx={{
-                    color: "#666",
+                    color: "rgba(255, 255, 255, 0.7)",
                     fontFamily: "'Poppins', sans-serif",
                     fontSize: "0.7rem",
                   }}
@@ -566,12 +559,14 @@ const AdminNavigation = ({
               >
                 <Avatar
                   sx={{
-                    width: 40,
-                    height: 40,
-                    bgcolor: "#1976d2",
+                    width: 36,
+                    height: 36,
+                    bgcolor: "rgba(255, 255, 255, 0.2)",
+                    color: "white",
                     fontFamily: "'Poppins', sans-serif",
                     fontWeight: 600,
-                    fontSize: "1.1rem",
+                    fontSize: "1rem",
+                    border: "2px solid rgba(255, 255, 255, 0.3)",
                   }}
                 >
                   {currentUser?.username?.charAt(0)?.toUpperCase() || "A"}
@@ -581,13 +576,13 @@ const AdminNavigation = ({
           </Box>
         </Toolbar>
 
-        {/* Enhanced Admin Navigation Tabs with Working CRUD Dropdowns */}
+        {/* Enhanced Admin Navigation Tabs */}
         <Box
           sx={{
-            bgcolor: "#f8f9fa",
-            borderTop: "1px solid #e0e0e0",
+            bgcolor: "rgba(255, 255, 255, 0.08)",
+            borderTop: "1px solid rgba(255, 255, 255, 0.1)",
             px: { xs: 1, sm: 2, md: 4 },
-            py: 1,
+            py: 1.5,
           }}
         >
           <Box
@@ -601,30 +596,30 @@ const AdminNavigation = ({
               },
             }}
           >
-            {/* Dashboard */}
+            {/* Dashboard - White when active */}
             <AdminNavButton
-              startIcon={<Dashboard sx={{ fontSize: 22 }} />}
+              startIcon={<Dashboard sx={{ fontSize: 20 }} />}
               active={activeTab === 0}
               onClick={() => handleTabClick(0)}
             >
               Dashboard
             </AdminNavButton>
 
-            {/* Item Master with Working CRUD Dropdown */}
+            {/* Item Master with Enhanced Functional Dropdown */}
             <Box
-              ref={itemMasterRef}
-              onMouseEnter={() => handleDropdownHover("itemMaster", true)}
-              onMouseLeave={() => handleDropdownHover("itemMaster", false)}
+              ref={dropdownRefs.itemMaster}
+              onMouseEnter={() => handleDropdownToggle("itemMaster", true)}
+              onMouseLeave={() => handleDropdownToggle("itemMaster", false)}
               sx={{ position: "relative" }}
             >
               <AdminNavButton
-                startIcon={<ShoppingCart sx={{ fontSize: 22 }} />}
+                startIcon={<ShoppingCart sx={{ fontSize: 20 }} />}
                 endIcon={
                   <KeyboardArrowDown
                     sx={{
-                      fontSize: 18,
+                      fontSize: 16,
                       transition: "transform 0.3s ease-in-out",
-                      transform: itemMasterDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transform: dropdownStates.itemMaster ? "rotate(180deg)" : "rotate(0deg)",
                     }}
                   />
                 }
@@ -634,9 +629,9 @@ const AdminNavigation = ({
                 Item Master
               </AdminNavButton>
 
-              {renderCRUDDropdown("itemMaster", itemMasterDropdownOpen, itemMasterRef, [
+              {renderCRUDDropdown("itemMaster", dropdownStates.itemMaster, dropdownRefs.itemMaster, [
                 {
-                  label: "Add New Item",
+                  label: "New Item",
                   description: "Create new product",
                   icon: <AddIcon sx={{ color: "#2196f3", fontSize: 22 }} />,
                   action: "create",
@@ -644,43 +639,29 @@ const AdminNavigation = ({
                 },
                 {
                   label: "Manage Items",
-                  description: "View all products",
+                  description: "View and edit products",
                   icon: <ListIcon sx={{ color: "#4caf50", fontSize: 22 }} />,
                   action: "read",
-                  data: { type: "item" },
-                },
-                {
-                  label: "Edit Items",
-                  description: "Update products",
-                  icon: <EditIcon sx={{ color: "#ff9800", fontSize: 22 }} />,
-                  action: "update",
-                  data: { type: "item" },
-                },
-                {
-                  label: "Delete Items",
-                  description: "Remove products",
-                  icon: <DeleteIcon sx={{ color: "#f44336", fontSize: 22 }} />,
-                  action: "delete",
                   data: { type: "item" },
                 },
               ])}
             </Box>
 
-            {/* Categories with Working CRUD Dropdown */}
+            {/* Categories with Enhanced Dropdown */}
             <Box
-              ref={categoriesRef}
-              onMouseEnter={() => handleDropdownHover("categories", true)}
-              onMouseLeave={() => handleDropdownHover("categories", false)}
+              ref={dropdownRefs.categories}
+              onMouseEnter={() => handleDropdownToggle("categories", true)}
+              onMouseLeave={() => handleDropdownToggle("categories", false)}
               sx={{ position: "relative" }}
             >
               <AdminNavButton
-                startIcon={<CategoryIcon sx={{ fontSize: 22 }} />}
+                startIcon={<CategoryIcon sx={{ fontSize: 20 }} />}
                 endIcon={
                   <KeyboardArrowDown
                     sx={{
-                      fontSize: 18,
+                      fontSize: 16,
                       transition: "transform 0.3s ease-in-out",
-                      transform: categoriesDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transform: dropdownStates.categories ? "rotate(180deg)" : "rotate(0deg)",
                     }}
                   />
                 }
@@ -690,7 +671,7 @@ const AdminNavigation = ({
                 Categories
               </AdminNavButton>
 
-              {renderCRUDDropdown("categories", categoriesDropdownOpen, categoriesRef, [
+              {renderCRUDDropdown("categories", dropdownStates.categories, dropdownRefs.categories, [
                 {
                   label: "Add Category",
                   description: "Create new category",
@@ -705,38 +686,24 @@ const AdminNavigation = ({
                   action: "read",
                   data: { type: "category" },
                 },
-                {
-                  label: "Edit Categories",
-                  description: "Update categories",
-                  icon: <EditIcon sx={{ color: "#ff9800", fontSize: 22 }} />,
-                  action: "update",
-                  data: { type: "category" },
-                },
-                {
-                  label: "Delete Categories",
-                  description: "Remove categories",
-                  icon: <DeleteIcon sx={{ color: "#f44336", fontSize: 22 }} />,
-                  action: "delete",
-                  data: { type: "category" },
-                },
               ])}
             </Box>
 
-            {/* Sales with Working CRUD Dropdown */}
+            {/* Sales with Enhanced Dropdown */}
             <Box
-              ref={salesRef}
-              onMouseEnter={() => handleDropdownHover("sales", true)}
-              onMouseLeave={() => handleDropdownHover("sales", false)}
+              ref={dropdownRefs.sales}
+              onMouseEnter={() => handleDropdownToggle("sales", true)}
+              onMouseLeave={() => handleDropdownToggle("sales", false)}
               sx={{ position: "relative" }}
             >
               <AdminNavButton
-                startIcon={<SalesIcon sx={{ fontSize: 22 }} />}
+                startIcon={<SalesIcon sx={{ fontSize: 20 }} />}
                 endIcon={
                   <KeyboardArrowDown
                     sx={{
-                      fontSize: 18,
+                      fontSize: 16,
                       transition: "transform 0.3s ease-in-out",
-                      transform: salesDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transform: dropdownStates.sales ? "rotate(180deg)" : "rotate(0deg)",
                     }}
                   />
                 }
@@ -746,7 +713,7 @@ const AdminNavigation = ({
                 Sales
               </AdminNavButton>
 
-              {renderCRUDDropdown("sales", salesDropdownOpen, salesRef, [
+              {renderCRUDDropdown("sales", dropdownStates.sales, dropdownRefs.sales, [
                 {
                   label: "New Sale",
                   description: "Create sales order",
@@ -761,38 +728,24 @@ const AdminNavigation = ({
                   action: "read",
                   data: { type: "sale" },
                 },
-                {
-                  label: "Edit Orders",
-                  description: "Modify orders",
-                  icon: <EditIcon sx={{ color: "#ff9800", fontSize: 22 }} />,
-                  action: "update",
-                  data: { type: "sale" },
-                },
-                {
-                  label: "Cancel Orders",
-                  description: "Remove orders",
-                  icon: <DeleteIcon sx={{ color: "#f44336", fontSize: 22 }} />,
-                  action: "delete",
-                  data: { type: "sale" },
-                },
               ])}
             </Box>
 
-            {/* Inventory with Working CRUD Dropdown */}
+            {/* Inventory with Enhanced Dropdown */}
             <Box
-              ref={inventoryRef}
-              onMouseEnter={() => handleDropdownHover("inventory", true)}
-              onMouseLeave={() => handleDropdownHover("inventory", false)}
+              ref={dropdownRefs.inventory}
+              onMouseEnter={() => handleDropdownToggle("inventory", true)}
+              onMouseLeave={() => handleDropdownToggle("inventory", false)}
               sx={{ position: "relative" }}
             >
               <AdminNavButton
-                startIcon={<Inventory sx={{ fontSize: 22 }} />}
+                startIcon={<Inventory sx={{ fontSize: 20 }} />}
                 endIcon={
                   <KeyboardArrowDown
                     sx={{
-                      fontSize: 18,
+                      fontSize: 16,
                       transition: "transform 0.3s ease-in-out",
-                      transform: inventoryDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transform: dropdownStates.inventory ? "rotate(180deg)" : "rotate(0deg)",
                     }}
                   />
                 }
@@ -802,7 +755,7 @@ const AdminNavigation = ({
                 Inventory
               </AdminNavButton>
 
-              {renderCRUDDropdown("inventory", inventoryDropdownOpen, inventoryRef, [
+              {renderCRUDDropdown("inventory", dropdownStates.inventory, dropdownRefs.inventory, [
                 {
                   label: "Add Stock",
                   description: "Increase inventory",
@@ -817,38 +770,24 @@ const AdminNavigation = ({
                   action: "read",
                   data: { type: "stock" },
                 },
-                {
-                  label: "Update Stock",
-                  description: "Adjust quantities",
-                  icon: <EditIcon sx={{ color: "#ff9800", fontSize: 22 }} />,
-                  action: "update",
-                  data: { type: "stock" },
-                },
-                {
-                  label: "Remove Stock",
-                  description: "Handle damaged items",
-                  icon: <DeleteIcon sx={{ color: "#f44336", fontSize: 22 }} />,
-                  action: "delete",
-                  data: { type: "stock" },
-                },
               ])}
             </Box>
 
-            {/* Suppliers with Working CRUD Dropdown */}
+            {/* Suppliers with Enhanced Dropdown */}
             <Box
-              ref={suppliersRef}
-              onMouseEnter={() => handleDropdownHover("suppliers", true)}
-              onMouseLeave={() => handleDropdownHover("suppliers", false)}
+              ref={dropdownRefs.suppliers}
+              onMouseEnter={() => handleDropdownToggle("suppliers", true)}
+              onMouseLeave={() => handleDropdownToggle("suppliers", false)}
               sx={{ position: "relative" }}
             >
               <AdminNavButton
-                startIcon={<SuppliersIcon sx={{ fontSize: 22 }} />}
+                startIcon={<SuppliersIcon sx={{ fontSize: 20 }} />}
                 endIcon={
                   <KeyboardArrowDown
                     sx={{
-                      fontSize: 18,
+                      fontSize: 16,
                       transition: "transform 0.3s ease-in-out",
-                      transform: suppliersDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transform: dropdownStates.suppliers ? "rotate(180deg)" : "rotate(0deg)",
                     }}
                   />
                 }
@@ -858,7 +797,7 @@ const AdminNavigation = ({
                 Suppliers
               </AdminNavButton>
 
-              {renderCRUDDropdown("suppliers", suppliersDropdownOpen, suppliersRef, [
+              {renderCRUDDropdown("suppliers", dropdownStates.suppliers, dropdownRefs.suppliers, [
                 {
                   label: "Add Supplier",
                   description: "Register new vendor",
@@ -873,38 +812,24 @@ const AdminNavigation = ({
                   action: "read",
                   data: { type: "supplier" },
                 },
-                {
-                  label: "Edit Suppliers",
-                  description: "Update vendor info",
-                  icon: <EditIcon sx={{ color: "#ff9800", fontSize: 22 }} />,
-                  action: "update",
-                  data: { type: "supplier" },
-                },
-                {
-                  label: "Remove Suppliers",
-                  description: "Deactivate vendors",
-                  icon: <DeleteIcon sx={{ color: "#f44336", fontSize: 22 }} />,
-                  action: "delete",
-                  data: { type: "supplier" },
-                },
               ])}
             </Box>
 
-            {/* Sales Agents with Working CRUD Dropdown */}
+            {/* Sales Agents with Enhanced Dropdown */}
             <Box
-              ref={agentsRef}
-              onMouseEnter={() => handleDropdownHover("agents", true)}
-              onMouseLeave={() => handleDropdownHover("agents", false)}
+              ref={dropdownRefs.agents}
+              onMouseEnter={() => handleDropdownToggle("agents", true)}
+              onMouseLeave={() => handleDropdownToggle("agents", false)}
               sx={{ position: "relative" }}
             >
               <AdminNavButton
-                startIcon={<People sx={{ fontSize: 22 }} />}
+                startIcon={<People sx={{ fontSize: 20 }} />}
                 endIcon={
                   <KeyboardArrowDown
                     sx={{
-                      fontSize: 18,
+                      fontSize: 16,
                       transition: "transform 0.3s ease-in-out",
-                      transform: agentsDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transform: dropdownStates.agents ? "rotate(180deg)" : "rotate(0deg)",
                     }}
                   />
                 }
@@ -914,7 +839,7 @@ const AdminNavigation = ({
                 Sales Agents
               </AdminNavButton>
 
-              {renderCRUDDropdown("agents", agentsDropdownOpen, agentsRef, [
+              {renderCRUDDropdown("agents", dropdownStates.agents, dropdownRefs.agents, [
                 {
                   label: "Add Agent",
                   description: "Register new agent",
@@ -927,20 +852,6 @@ const AdminNavigation = ({
                   description: "Browse team members",
                   icon: <ViewIcon sx={{ color: "#4caf50", fontSize: 22 }} />,
                   action: "read",
-                  data: { type: "agent" },
-                },
-                {
-                  label: "Edit Agents",
-                  description: "Update agent info",
-                  icon: <EditIcon sx={{ color: "#ff9800", fontSize: 22 }} />,
-                  action: "update",
-                  data: { type: "agent" },
-                },
-                {
-                  label: "Remove Agents",
-                  description: "Deactivate agents",
-                  icon: <DeleteIcon sx={{ color: "#f44336", fontSize: 22 }} />,
-                  action: "delete",
                   data: { type: "agent" },
                 },
               ])}

@@ -54,7 +54,6 @@ import {
   Inbox,
   ShoppingBag,
   AdminPanelSettings,
-  Dashboard,
 } from "@mui/icons-material"
 import { styled, alpha, useTheme } from "@mui/material/styles"
 import { useNavigate, useLocation } from "react-router-dom"
@@ -212,21 +211,10 @@ const NavigationBar = ({ isLoggedIn, currentUser, onLogout, isAdminPage }) => {
   const [activeTooltip, setActiveTooltip] = useState("")
   const [activeDropdown, setActiveDropdown] = useState("")
 
-  // Regular e-commerce menus
   const menus = {
     "Office Essentials": ["Paper Products", "Writing Instruments", "Binders & Filing"],
     "Toners & Inks": ["HP Toners", "Canon Inks", "Brother Cartridges"],
     "Office Machines": ["Printers", "Shredders", "Laminators"],
-  }
-
-  // Admin menus
-  const adminMenus = {
-    "Item Master": ["New Item", "Manage Items", "Edit Item", "Delete Item"],
-    Categories: ["Add Category", "View Categories", "Edit Category", "Delete Category"],
-    Sales: ["New Sale", "View Sales", "Edit Order", "Cancel Order"],
-    Inventory: ["Add Stock", "View Inventory", "Update Stock", "Remove Stock"],
-    Suppliers: ["Add Supplier", "View Suppliers", "Edit Supplier", "Remove Supplier"],
-    "Sales Agents": ["Add Agent", "View Agents", "Edit Agent", "Remove Agent"],
   }
 
   // Check if user is admin
@@ -282,417 +270,345 @@ const NavigationBar = ({ isLoggedIn, currentUser, onLogout, isAdminPage }) => {
     // The login component will handle navigation
   }
 
-  // Get the current menus based on page type
-  const currentMenus = isAdminPage ? adminMenus : menus
-
   return (
     <>
-      <AppBar
-        position="static"
-        sx={{
-          boxShadow: 0,
-          backgroundColor: theme.palette.background.paper,
-          color: theme.palette.text.primary,
-          overflowX: "hidden",
-          zIndex: 1200,
-        }}
-      >
-        <Container
-          maxWidth="xl"
+      {isAdminPage ? null : (
+        <AppBar
+          position="static"
           sx={{
-            px: { xs: 1, sm: 2 },
+            boxShadow: 0,
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
             overflowX: "hidden",
+            zIndex: 1200,
           }}
         >
-          <Toolbar
-            disableGutters
+          <Container
+            maxWidth="xl"
             sx={{
-              justifyContent: "space-between",
-              flexDirection: { xs: "row", sm: "row" },
-              alignItems: "center",
-              flexWrap: "wrap",
-              minHeight: { xs: "56px" },
-              py: { xs: 1, sm: 1 },
-              gap: { xs: 1, sm: 0 },
+              px: { xs: 1, sm: 2 },
+              overflowX: "hidden",
             }}
           >
-            {/* Logo and Mobile Menu Button */}
-            <Box
+            <Toolbar
+              disableGutters
               sx={{
-                display: "flex",
-                alignItems: "center",
                 justifyContent: "space-between",
-                width: { xs: "100%", sm: "auto" },
-                mb: { xs: 0, sm: 0 },
+                flexDirection: { xs: "row", sm: "row" },
+                alignItems: "center",
+                flexWrap: "wrap",
+                minHeight: { xs: "56px" },
+                py: { xs: 1, sm: 1 },
+                gap: { xs: 1, sm: 0 },
               }}
             >
-              {/* Logo */}
+              {/* Logo and Mobile Menu Button */}
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  cursor: "pointer",
+                  justifyContent: "space-between",
+                  width: { xs: "100%", sm: "auto" },
+                  mb: { xs: 0, sm: 0 },
                 }}
-                onClick={() => navigate("/")}
               >
-                <Typography variant="h6" noWrap sx={{ fontWeight: 700, display: "flex", alignItems: "center" }}>
-                  <Box
-                    component="img"
-                    src={FirstCraftLogo}
-                    alt="FirstCraft Logo"
+                {/* Logo */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigate("/")}
+                >
+                  <Typography variant="h6" noWrap sx={{ fontWeight: 700, display: "flex", alignItems: "center" }}>
+                    <Box
+                      component="img"
+                      src={FirstCraftLogo}
+                      alt="FirstCraft Logo"
+                      sx={{
+                        height: { xs: "70px", sm: "70px" },
+                        maxWidth: "100%",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </Typography>
+                </Box>
+
+                {/* Mobile Menu Button */}
+                {isMobile && (
+                  <IconButton sx={{ color: theme.palette.primary.main }} onClick={toggleDrawer} aria-label="menu">
+                    <MenuIcon />
+                  </IconButton>
+                )}
+              </Box>
+
+              {/* Mobile Search Bar - Expandable */}
+              {isMobile && mobileSearchOpen && (
+                <Box
+                  sx={{
+                    width: "100%",
+                    py: 1,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    size="small"
+                    placeholder={isAdminPage ? "Search admin..." : "Search products..."}
+                    variant="outlined"
+                    autoFocus
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={toggleMobileSearch}>
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
                     sx={{
-                      height: { xs: "70px", sm: "70px" },
-                      maxWidth: "100%",
-                      objectFit: "contain",
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "4px",
+                      },
                     }}
                   />
-                </Typography>
-              </Box>
-
-              {/* Mobile Menu Button */}
-              {isMobile && (
-                <IconButton sx={{ color: theme.palette.primary.main }} onClick={toggleDrawer} aria-label="menu">
-                  <MenuIcon />
-                </IconButton>
-              )}
-            </Box>
-
-            {/* Mobile Search Bar - Expandable */}
-            {isMobile && mobileSearchOpen && (
-              <Box
-                sx={{
-                  width: "100%",
-                  py: 1,
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <TextField
-                  fullWidth
-                  size="small"
-                  placeholder="Search products..."
-                  variant="outlined"
-                  autoFocus
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton size="small" onClick={toggleMobileSearch}>
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "4px",
-                    },
-                  }}
-                />
-              </Box>
-            )}
-
-            {/* Right Side - Desktop and Mobile */}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                gap: { xs: 0.5, sm: 0.5 },
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.primary.contrastText,
-                px: { xs: 1, sm: 1 },
-                py: { xs: 1, sm: 1 },
-                borderRadius: 1,
-                width: isMobile ? "100%" : "auto",
-                mt: isMobile && mobileSearchOpen ? 1 : 0,
-              }}
-            >
-              {/* Search bar - desktop only */}
-              {!isMobile && (
-                <Search>
-                  <SearchIconWrapper>
-                    <SearchIcon />
-                  </SearchIconWrapper>
-                  <StyledInputBase
-                    placeholder={isAdminPage ? "Search admin..." : "Search products..."}
-                    inputProps={{ "aria-label": "search" }}
-                  />
-                </Search>
+                </Box>
               )}
 
-              {/* Mobile Search Toggle Button */}
-              {isMobile && !mobileSearchOpen && (
-                <IconButton
-                  size="small"
-                  sx={{ color: theme.palette.primary.contrastText }}
-                  onClick={toggleMobileSearch}
-                >
-                  <SearchIcon fontSize="small" />
-                </IconButton>
-              )}
-
-              {/* Action buttons row */}
+              {/* Right Side - Desktop and Mobile */}
               <Box
                 sx={{
                   display: "flex",
+                  flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "flex-end",
+                  gap: { xs: 0.5, sm: 0.5 },
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  px: { xs: 1, sm: 1 },
+                  py: { xs: 1, sm: 1 },
+                  borderRadius: 1,
+                  width: isMobile ? "100%" : "auto",
+                  mt: isMobile && mobileSearchOpen ? 1 : 0,
                 }}
               >
-                {/* Wishlist Icon with Tooltip - Hide on admin page */}
-                {!isAdminPage && (
-                  <Tooltip title="My Wishlist" arrow>
-                    <IconButton
-                      size={isMobile ? "small" : "medium"}
-                      sx={{ color: theme.palette.primary.contrastText }}
-                      onClick={() => navigate("/wishlist")}
-                      onMouseEnter={() => handleTooltipOpen("wishlist")}
-                      onMouseLeave={handleTooltipClose}
-                    >
-                      <FavoriteIcon fontSize={isMobile ? "small" : "medium"} />
-                    </IconButton>
-                  </Tooltip>
+                {/* Search bar - desktop only */}
+                {!isMobile && (
+                  <Search>
+                    <SearchIconWrapper>
+                      <SearchIcon />
+                    </SearchIconWrapper>
+                    <StyledInputBase
+                      placeholder={isAdminPage ? "Search admin..." : "Search..."}
+                      inputProps={{ "aria-label": "search" }}
+                    />
+                  </Search>
                 )}
 
-                {/* Profile Icon with Tooltip */}
-                <Tooltip title={isLoggedIn ? "My Account" : "Sign In"} arrow>
+                {/* Mobile Search Toggle Button */}
+                {isMobile && !mobileSearchOpen && (
                   <IconButton
-                    size={isMobile ? "small" : "medium"}
+                    size="small"
                     sx={{ color: theme.palette.primary.contrastText }}
-                    onClick={isLoggedIn ? handleUserMenuOpen : handleOpenLogin}
-                    onMouseEnter={() => handleTooltipOpen("profile")}
-                    onMouseLeave={handleTooltipClose}
+                    onClick={toggleMobileSearch}
                   >
-                    {isLoggedIn ? (
-                      <Avatar
-                        sx={{
-                          width: isMobile ? 24 : 32,
-                          height: isMobile ? 24 : 32,
-                          bgcolor: theme.palette.secondary.main,
-                          fontSize: isMobile ? "0.75rem" : "1rem",
-                        }}
-                      >
-                        {currentUser?.username?.charAt(0) || <PersonIcon fontSize={isMobile ? "small" : "medium"} />}
-                      </Avatar>
-                    ) : (
-                      <PersonIcon fontSize={isMobile ? "small" : "medium"} />
-                    )}
+                    <SearchIcon fontSize="small" />
                   </IconButton>
-                </Tooltip>
+                )}
 
-                {/* Cart Icon with Tooltip - Hide on admin page */}
-                {!isAdminPage && (
-                  <Tooltip title="My Cart" arrow>
+                {/* Action buttons row */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  {/* Wishlist Icon with Tooltip - Hide on admin page */}
+                  {!isAdminPage && (
+                    <Tooltip title="My Wishlist" arrow>
+                      <IconButton
+                        size={isMobile ? "small" : "medium"}
+                        sx={{ color: theme.palette.primary.contrastText }}
+                        onClick={() => navigate("/wishlist")}
+                        onMouseEnter={() => handleTooltipOpen("wishlist")}
+                        onMouseLeave={handleTooltipClose}
+                      >
+                        <FavoriteIcon fontSize={isMobile ? "small" : "medium"} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+
+                  {/* Profile Icon with Tooltip */}
+                  <Tooltip title={isLoggedIn ? "My Account" : "Sign In"} arrow>
                     <IconButton
                       size={isMobile ? "small" : "medium"}
                       sx={{ color: theme.palette.primary.contrastText }}
-                      onClick={() => navigate("/cart")}
-                      onMouseEnter={() => handleTooltipOpen("cart")}
+                      onClick={isLoggedIn ? handleUserMenuOpen : handleOpenLogin}
+                      onMouseEnter={() => handleTooltipOpen("profile")}
                       onMouseLeave={handleTooltipClose}
                     >
-                      <Badge badgeContent={cartItemsCount} color="error">
-                        <ShoppingCartIcon fontSize={isMobile ? "small" : "medium"} />
-                      </Badge>
+                      {isLoggedIn ? (
+                        <Avatar
+                          sx={{
+                            width: isMobile ? 24 : 32,
+                            height: isMobile ? 24 : 32,
+                            bgcolor: theme.palette.secondary.main,
+                            fontSize: isMobile ? "0.75rem" : "1rem",
+                          }}
+                        >
+                          {currentUser?.username?.charAt(0) || <PersonIcon fontSize={isMobile ? "small" : "medium"} />}
+                        </Avatar>
+                      ) : (
+                        <PersonIcon fontSize={isMobile ? "small" : "medium"} />
+                      )}
                     </IconButton>
                   </Tooltip>
-                )}
 
-                {/* E-Wallet Button - Desktop only, hide on admin page */}
-                {!isTablet && !isMobile && !isAdminPage && (
-                  <WalletButton startIcon={<WalletIcon />} onClick={() => navigate("/wallet")}>
-                    E-Wallet
-                  </WalletButton>
-                )}
+                  {/* Cart Icon with Tooltip - Hide on admin page */}
+                  {!isAdminPage && (
+                    <Tooltip title="My Cart" arrow>
+                      <IconButton
+                        size={isMobile ? "small" : "medium"}
+                        sx={{ color: theme.palette.primary.contrastText }}
+                        onClick={() => navigate("/cart")}
+                        onMouseEnter={() => handleTooltipOpen("cart")}
+                        onMouseLeave={handleTooltipClose}
+                      >
+                        <Badge badgeContent={cartItemsCount} color="error">
+                          <ShoppingCartIcon fontSize={isMobile ? "small" : "medium"} />
+                        </Badge>
+                      </IconButton>
+                    </Tooltip>
+                  )}
 
-                {/* Register/Login Button - Desktop only, hide on admin page */}
-                {!isMobile && !isLoggedIn && !isAdminPage && (
-                  <RegisterButton onClick={handleOpenRegistration}>Register</RegisterButton>
-                )}
+                  {/* E-Wallet Button - Desktop only, hide on admin page */}
+                  {!isTablet && !isMobile && !isAdminPage && (
+                    <WalletButton startIcon={<WalletIcon />} onClick={() => navigate("/wallet")}>
+                      E-Wallet
+                    </WalletButton>
+                  )}
 
-                {/* User greeting - Desktop only */}
-                {!isMobile && isLoggedIn && (
-                  <Typography variant="body2" sx={{ ml: 1, fontWeight: "medium" }}>
-                    Hello, {currentUser?.username || "User"}
-                  </Typography>
-                )}
+                  {/* Register/Login Button - Desktop only, hide on admin page */}
+                  {!isMobile && !isLoggedIn && !isAdminPage && (
+                    <RegisterButton onClick={handleOpenRegistration}>Register</RegisterButton>
+                  )}
+
+                  {/* User greeting - Desktop only */}
+                  {!isMobile && isLoggedIn && (
+                    <Typography variant="body2" sx={{ ml: 1, fontWeight: "medium" }}>
+                      Hello, {currentUser?.username || "User"}
+                    </Typography>
+                  )}
+                </Box>
               </Box>
+            </Toolbar>
+          </Container>
+
+          {/* Bottom Toolbar - ONLY show on customer pages, COMPLETELY HIDDEN on admin pages */}
+          {!isMobile && !isAdminPage && (
+            <Box
+              sx={{
+                bgcolor: theme.palette.primary.main,
+                width: "100%",
+                color: theme.palette.primary.contrastText,
+                overflowX: "auto",
+                "&::-webkit-scrollbar": { height: "4px" },
+                "&::-webkit-scrollbar-thumb": { backgroundColor: "rgba(255,255,255,0.2)", borderRadius: "4px" },
+                position: "relative",
+                zIndex: 1,
+              }}
+            >
+              <Container maxWidth="xl">
+                <Toolbar
+                  disableGutters
+                  sx={{
+                    minHeight: "40px",
+                    overflowX: "auto",
+                    display: "flex",
+                    flexWrap: "nowrap",
+                  }}
+                >
+                  {/* Regular Customer Navigation Links ONLY */}
+                  <NavButton startIcon={<HomeIcon fontSize="small" />} onClick={() => navigate("/")}>
+                    Home
+                  </NavButton>
+
+                  <NavButton>Special Offer</NavButton>
+
+                  {/* Menu items with hover effect */}
+                  {Object.keys(menus).map((menuName) => (
+                    <Box
+                      key={menuName}
+                      ref={(el) => setMenuRef(menuName, el)}
+                      sx={{ position: "relative" }}
+                      onMouseEnter={() => handleDropdownOpen(menuName)}
+                      onMouseLeave={handleDropdownClose}
+                    >
+                      <NavButton endIcon={<ChevronDownIcon fontSize="small" />}>{menuName}</NavButton>
+
+                      {/* Dropdown content */}
+                      <Popper
+                        open={activeDropdown === menuName}
+                        anchorEl={menuRefs.current[menuName]}
+                        placement="bottom-start"
+                        transition
+                        disablePortal={false}
+                        style={{ zIndex: 1400 }}
+                        modifiers={[
+                          {
+                            name: "offset",
+                            options: {
+                              offset: [0, 8],
+                            },
+                          },
+                        ]}
+                      >
+                        {({ TransitionProps }) => (
+                          <Fade {...TransitionProps} timeout={200}>
+                            <DropdownContent
+                              onMouseEnter={() => handleDropdownOpen(menuName)}
+                              onMouseLeave={handleDropdownClose}
+                            >
+                              {menus[menuName].map((item, index) => (
+                                <DropdownItem key={index} onClick={() => handleDropdownItemClick(item)}>
+                                  {item}
+                                </DropdownItem>
+                              ))}
+                            </DropdownContent>
+                          </Fade>
+                        )}
+                      </Popper>
+                    </Box>
+                  ))}
+
+                  <NavButton>School Supplies</NavButton>
+                  <NavButton>Stapling & Punching</NavButton>
+                  <NavButton>IT Accessories</NavButton>
+                  <NavButton>Office Furniture</NavButton>
+                  <NavButton>More</NavButton>
+                  <NavButton>ALL Brands</NavButton>
+                  <NavButton>Contact Us</NavButton>
+
+                  {/* E-Wallet Button for tablet view */}
+                  {isTablet && !isMobile && (
+                    <WalletButton startIcon={<WalletIcon />} onClick={() => navigate("/wallet")}>
+                      E-Wallet
+                    </WalletButton>
+                  )}
+                </Toolbar>
+              </Container>
             </Box>
-          </Toolbar>
-        </Container>
-
-        {/* Bottom Toolbar - Desktop only */}
-        {!isMobile && (
-          <Box
-            sx={{
-              bgcolor: theme.palette.primary.main,
-              width: "100%",
-              color: theme.palette.primary.contrastText,
-              overflowX: "auto",
-              "&::-webkit-scrollbar": { height: "4px" },
-              "&::-webkit-scrollbar-thumb": { backgroundColor: "rgba(255,255,255,0.2)", borderRadius: "4px" },
-              position: "relative",
-              zIndex: 1,
-            }}
-          >
-            <Container maxWidth="xl">
-              <Toolbar
-                disableGutters
-                sx={{
-                  minHeight: "40px",
-                  overflowX: "auto",
-                  display: "flex",
-                  flexWrap: "nowrap",
-                }}
-              >
-                {isAdminPage ? (
-                  // Admin Navigation Links
-                  <>
-                    <NavButton startIcon={<Dashboard fontSize="small" />} onClick={() => navigate("/admin")}>
-                      Dashboard
-                    </NavButton>
-
-                    {/* Admin Menu Items with Dropdowns */}
-                    {Object.keys(adminMenus).map((menuName) => (
-                      <Box
-                        key={menuName}
-                        ref={(el) => setMenuRef(menuName, el)}
-                        sx={{ position: "relative" }}
-                        onMouseEnter={() => handleDropdownOpen(menuName)}
-                        onMouseLeave={handleDropdownClose}
-                      >
-                        <NavButton endIcon={<ChevronDownIcon fontSize="small" />}>{menuName}</NavButton>
-
-                        {/* Dropdown content */}
-                        <Popper
-                          open={activeDropdown === menuName}
-                          anchorEl={menuRefs.current[menuName]}
-                          placement="bottom-start"
-                          transition
-                          disablePortal={false}
-                          style={{ zIndex: 1400 }}
-                          modifiers={[
-                            {
-                              name: "offset",
-                              options: {
-                                offset: [0, 8],
-                              },
-                            },
-                          ]}
-                        >
-                          {({ TransitionProps }) => (
-                            <Fade {...TransitionProps} timeout={200}>
-                              <DropdownContent
-                                onMouseEnter={() => handleDropdownOpen(menuName)}
-                                onMouseLeave={handleDropdownClose}
-                              >
-                                {adminMenus[menuName].map((item, index) => (
-                                  <DropdownItem key={index} onClick={() => handleDropdownItemClick(item)}>
-                                    {item}
-                                  </DropdownItem>
-                                ))}
-                              </DropdownContent>
-                            </Fade>
-                          )}
-                        </Popper>
-                      </Box>
-                    ))}
-                  </>
-                ) : (
-                  // Regular Customer Navigation Links
-                  <>
-                    <NavButton startIcon={<HomeIcon fontSize="small" />} onClick={() => navigate("/")}>
-                      Home
-                    </NavButton>
-
-                    <NavButton>Special Offer</NavButton>
-
-                    {/* Menu items with hover effect */}
-                    {Object.keys(menus).map((menuName) => (
-                      <Box
-                        key={menuName}
-                        ref={(el) => setMenuRef(menuName, el)}
-                        sx={{ position: "relative" }}
-                        onMouseEnter={() => handleDropdownOpen(menuName)}
-                        onMouseLeave={handleDropdownClose}
-                      >
-                        <NavButton endIcon={<ChevronDownIcon fontSize="small" />}>{menuName}</NavButton>
-
-                        {/* Dropdown content */}
-                        <Popper
-                          open={activeDropdown === menuName}
-                          anchorEl={menuRefs.current[menuName]}
-                          placement="bottom-start"
-                          transition
-                          disablePortal={false}
-                          style={{ zIndex: 1400 }}
-                          modifiers={[
-                            {
-                              name: "offset",
-                              options: {
-                                offset: [0, 8],
-                              },
-                            },
-                          ]}
-                        >
-                          {({ TransitionProps }) => (
-                            <Fade {...TransitionProps} timeout={200}>
-                              <DropdownContent
-                                onMouseEnter={() => handleDropdownOpen(menuName)}
-                                onMouseLeave={handleDropdownClose}
-                              >
-                                {menus[menuName].map((item, index) => (
-                                  <DropdownItem key={index} onClick={() => handleDropdownItemClick(item)}>
-                                    {item}
-                                  </DropdownItem>
-                                ))}
-                              </DropdownContent>
-                            </Fade>
-                          )}
-                        </Popper>
-                      </Box>
-                    ))}
-
-                    <NavButton>School Supplies</NavButton>
-                    <NavButton>Stapling & Punching</NavButton>
-                    <NavButton>IT Accessories</NavButton>
-                    <NavButton>Office Furniture</NavButton>
-                    <NavButton>More</NavButton>
-                    <NavButton>ALL Brands</NavButton>
-                    <NavButton>Contact Us</NavButton>
-
-                    {/* Admin Link - only show for admin users */}
-                    {!isMobile && isLoggedIn && isAdmin && (
-                      <NavButton
-                        startIcon={<AdminPanelSettings fontSize="small" />}
-                        onClick={() => navigate("/admin")}
-                        sx={{
-                          bgcolor: alpha(theme.palette.primary.contrastText, 0.2),
-                          "&:hover": { bgcolor: alpha(theme.palette.primary.contrastText, 0.3) },
-                        }}
-                      >
-                        Admin Panel
-                      </NavButton>
-                    )}
-
-                    {/* E-Wallet Button for tablet view */}
-                    {isTablet && !isMobile && (
-                      <WalletButton startIcon={<WalletIcon />} onClick={() => navigate("/wallet")}>
-                        E-Wallet
-                      </WalletButton>
-                    )}
-                  </>
-                )}
-              </Toolbar>
-            </Container>
-          </Box>
-        )}
-      </AppBar>
+          )}
+        </AppBar>
+      )}
 
       {/* Mobile Drawer */}
       <Drawer
@@ -927,30 +843,8 @@ const NavigationBar = ({ isLoggedIn, currentUser, onLogout, isAdminPage }) => {
               </ListItem>
             )}
 
-            {/* Show different menu items based on page type */}
-            {isAdminPage ? (
-              // Admin menu items
-              Object.keys(adminMenus).map((menuName) => (
-                <React.Fragment key={menuName}>
-                  <ListItem disablePadding>
-                    <ListItemButton onClick={() => toggleSubmenu(menuName)}>
-                      <ListItemText primary={menuName} />
-                      {drawerSubmenus[menuName] ? <ExpandLess /> : <ChevronRightIcon />}
-                    </ListItemButton>
-                  </ListItem>
-                  <Collapse in={drawerSubmenus[menuName]} timeout="auto" unmountOnExit>
-                    <List component="div" disablePadding>
-                      {adminMenus[menuName].map((subItem, index) => (
-                        <ListItemButton key={index} sx={{ pl: 4 }}>
-                          <ListItemText primary={subItem} />
-                        </ListItemButton>
-                      ))}
-                    </List>
-                  </Collapse>
-                </React.Fragment>
-              ))
-            ) : (
-              // Regular menu items
+            {/* Show only customer menu items on non-admin pages */}
+            {!isAdminPage && (
               <>
                 <ListItem disablePadding>
                   <ListItemButton>

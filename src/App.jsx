@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 import CssBaseline from "@mui/material/CssBaseline"
 import IndexPage from "./pages/Home/View"
@@ -17,14 +17,6 @@ import WalletPage from "./pages/Wallet/View/Index"
 import SalesAgentPage from "./pages/SalesAgent/View/Index"
 import CheckoutPage from "./pages/Checkout/View/Index"
 import AdminPage from "./pages/Admin/View/Index"
-
-// Wrapper component to handle conditional navigation
-const AppWrapper = ({ children }) => {
-  const location = useLocation()
-  const isAdminPage = location.pathname === "/admin"
-
-  return React.cloneElement(children, { isAdminPage })
-}
 
 function App() {
   // State for user authentication
@@ -176,33 +168,76 @@ function App() {
     [],
   )
 
+  // Component to handle route-based navigation detection
+  const AppContent = () => {
+    const [currentPath, setCurrentPath] = useState(window.location.pathname)
+
+    useEffect(() => {
+      const handleLocationChange = () => {
+        setCurrentPath(window.location.pathname)
+      }
+
+      // Listen for route changes
+      window.addEventListener("popstate", handleLocationChange)
+
+      // Also listen for programmatic navigation
+      const originalPushState = window.history.pushState
+      const originalReplaceState = window.history.replaceState
+
+      window.history.pushState = (...args) => {
+        originalPushState.apply(window.history, args)
+        handleLocationChange()
+      }
+
+      window.history.replaceState = (...args) => {
+        originalReplaceState.apply(window.history, args)
+        handleLocationChange()
+      }
+
+      return () => {
+        window.removeEventListener("popstate", handleLocationChange)
+        window.history.pushState = originalPushState
+        window.history.replaceState = originalReplaceState
+      }
+    }, [])
+
+    const isAdminPage = currentPath === "/admin"
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <NavigationBar
+          isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
+          onLogout={handleLogout}
+          isAdminPage={isAdminPage}
+        />
+        <main style={{ flexGrow: 1 }}>
+          <Routes>
+            <Route path="/" element={<IndexPage />} />
+            <Route path="/product-details" element={<ProductDetails />} />
+            <Route path="/product-details/:id" element={<ProductDetails />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/RegistrationForm" element={<RegistrationForm />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/sales-agent" element={<SalesAgentPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
     <ThemeProvider theme={theme}>
       {/* CssBaseline provides consistent baseline styles */}
       <CssBaseline />
       <BrowserRouter>
-        <AppWrapper>
-          <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-            <NavigationBar isLoggedIn={isLoggedIn} currentUser={currentUser} onLogout={handleLogout} />
-            <main style={{ flexGrow: 1 }}>
-              <Routes>
-                <Route path="/" element={<IndexPage />} />
-                <Route path="/product-details" element={<ProductDetails />} />
-                <Route path="/product-details/:id" element={<ProductDetails />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/RegistrationForm" element={<RegistrationForm />} />
-                <Route path="/account" element={<AccountPage />} />
-                <Route path="/wallet" element={<WalletPage />} />
-                <Route path="/sales-agent" element={<SalesAgentPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </AppWrapper>
+        <AppContent />
       </BrowserRouter>
     </ThemeProvider>
   )
