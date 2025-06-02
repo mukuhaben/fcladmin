@@ -35,7 +35,6 @@ import {
   Inventory,
   AttachMoney,
   MoreVert,
-  CalendarToday,
   Download,
   Refresh,
   FullscreenExit,
@@ -212,15 +211,15 @@ const ChartContainer = ({ title, children, height = 400, actions, quadrant = "" 
         width: "100%",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         // Cartesian plane specific margins
-        mx: 1.5, // Horizontal margin between quadrants
-        my: 1.5, // Vertical margin between quadrant rows
+        mx: 2, // Horizontal margin between quadrants
+        my: 2, // Vertical margin between quadrant rows
         // Enhanced visual depth
-        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-        border: "1px solid rgba(0,0,0,0.06)",
+        boxShadow: "0 6px 24px rgba(0,0,0,0.1)",
+        border: "1px solid rgba(0,0,0,0.08)",
         // Hover effects for interactivity
         "&:hover": {
-          boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-          transform: "translateY(-2px)",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
+          transform: "translateY(-3px)",
         },
         // Fullscreen mode styling
         ...(isFullscreen && {
@@ -245,17 +244,17 @@ const ChartContainer = ({ title, children, height = 400, actions, quadrant = "" 
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          mb: 3.5, // Increased margin for better separation
-          pb: 2, // Increased padding bottom
-          borderBottom: "2px solid #f5f5f5", // More prominent separator
+          mb: 4, // Increased margin for better separation
+          pb: 2.5, // Increased padding bottom
+          borderBottom: "2px solid #f0f0f0", // More prominent separator
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
           <Typography
             variant="h5"
             sx={{
               fontWeight: 700,
-              fontSize: "1.3rem",
+              fontSize: "1.4rem",
               color: "#1a1a1a",
               letterSpacing: "-0.02em", // Improved letter spacing
             }}
@@ -268,10 +267,11 @@ const ChartContainer = ({ title, children, height = 400, actions, quadrant = "" 
               label={quadrant}
               size="small"
               sx={{
-                backgroundColor: alpha("#1976d2", 0.1),
+                backgroundColor: alpha("#1976d2", 0.12),
                 color: "#1976d2",
-                fontWeight: 600,
-                fontSize: "0.75rem",
+                fontWeight: 700,
+                fontSize: "0.8rem",
+                height: 28,
               }}
             />
           )}
@@ -285,8 +285,10 @@ const ChartContainer = ({ title, children, height = 400, actions, quadrant = "" 
               size="small"
               onClick={toggleFullscreen}
               sx={{
-                backgroundColor: alpha("#1976d2", 0.08),
-                "&:hover": { backgroundColor: alpha("#1976d2", 0.15) },
+                backgroundColor: alpha("#1976d2", 0.1),
+                "&:hover": { backgroundColor: alpha("#1976d2", 0.2) },
+                width: 36,
+                height: 36,
               }}
             >
               {isFullscreen ? <FullscreenExit fontSize="small" /> : <Fullscreen fontSize="small" />}
@@ -297,8 +299,10 @@ const ChartContainer = ({ title, children, height = 400, actions, quadrant = "" 
               size="small"
               onClick={handleClick}
               sx={{
-                backgroundColor: alpha("#666", 0.08),
-                "&:hover": { backgroundColor: alpha("#666", 0.15) },
+                backgroundColor: alpha("#666", 0.1),
+                "&:hover": { backgroundColor: alpha("#666", 0.2) },
+                width: 36,
+                height: 36,
               }}
             >
               <MoreVert fontSize="small" />
@@ -335,13 +339,13 @@ const ChartContainer = ({ title, children, height = 400, actions, quadrant = "" 
       {/* Chart content area with enhanced spacing */}
       <Box
         sx={{
-          height: isFullscreen ? "calc(100% - 100px)" : "calc(100% - 80px)",
+          height: isFullscreen ? "calc(100% - 120px)" : "calc(100% - 100px)",
           width: "100%",
           // Enhanced padding around chart content
-          p: 2,
+          p: 2.5,
           borderRadius: 2,
-          backgroundColor: "#fafafa",
-          border: "1px solid #f0f0f0",
+          backgroundColor: "#fafbfc",
+          border: "1px solid #f0f2f5",
         }}
       >
         {children}
@@ -351,7 +355,7 @@ const ChartContainer = ({ title, children, height = 400, actions, quadrant = "" 
 }
 
 /**
- * Sales Performance Chart - Upper Left Quadrant
+ * Sales Performance Chart - Upper Left Quadrant (Q1)
  * Enhanced with better styling and responsive design
  */
 const SalesTrendChart = () => {
@@ -377,13 +381,13 @@ const SalesTrendChart = () => {
       value={timeRange}
       onChange={handleTimeRangeChange}
       sx={{
-        minHeight: 36,
+        minHeight: 38,
         "& .MuiTab-root": {
-          minHeight: 36,
+          minHeight: 38,
           py: 0,
-          px: 2,
+          px: 2.5,
           fontWeight: 600,
-          fontSize: "0.85rem",
+          fontSize: "0.9rem",
         },
       }}
     >
@@ -396,7 +400,7 @@ const SalesTrendChart = () => {
   return (
     <ChartContainer title="Sales Performance" actions={timeRangeActions} quadrant="Q1">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={salesData} margin={{ top: 25, right: 35, left: 25, bottom: 25 }}>
+        <AreaChart data={salesData} margin={{ top: 30, right: 40, left: 30, bottom: 30 }}>
           {/* Enhanced gradient definitions */}
           <defs>
             <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
@@ -404,13 +408,13 @@ const SalesTrendChart = () => {
               <stop offset="95%" stopColor="#1976d2" stopOpacity={0.1} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 500 }} />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e8eaed" />
+          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 13, fontWeight: 500 }} />
           <YAxis
             axisLine={false}
             tickLine={false}
             tickFormatter={(value) => `${value / 1000}k`}
-            tick={{ fontSize: 12, fontWeight: 500 }}
+            tick={{ fontSize: 13, fontWeight: 500 }}
           />
           <RechartsTooltip
             formatter={(value, name) => [
@@ -420,8 +424,8 @@ const SalesTrendChart = () => {
             contentStyle={{
               backgroundColor: "#fff",
               border: "1px solid #e0e0e0",
-              borderRadius: 8,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              borderRadius: 10,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
             }}
           />
           <Area
@@ -440,7 +444,7 @@ const SalesTrendChart = () => {
 }
 
 /**
- * Category Performance Chart - Upper Right Quadrant
+ * Category Performance Chart - Upper Right Quadrant (Q2)
  * Enhanced pie chart with better visual design
  */
 const CategoryChart = () => {
@@ -467,7 +471,7 @@ const CategoryChart = () => {
         fill="#fff"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
-        fontSize={13}
+        fontSize={14}
         fontWeight={700}
       >
         {`${(percent * 100).toFixed(0)}%`}
@@ -485,9 +489,9 @@ const CategoryChart = () => {
             cy="50%"
             labelLine={false}
             label={renderCustomizedLabel}
-            outerRadius={130}
-            innerRadius={40} // Added inner radius for donut effect
-            paddingAngle={2} // Small padding between segments
+            outerRadius={140}
+            innerRadius={45} // Added inner radius for donut effect
+            paddingAngle={3} // Small padding between segments
             dataKey="value"
           >
             {categoryData.map((entry, index) => (
@@ -499,15 +503,15 @@ const CategoryChart = () => {
             contentStyle={{
               backgroundColor: "#fff",
               border: "1px solid #e0e0e0",
-              borderRadius: 8,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              borderRadius: 10,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
             }}
           />
           <Legend
             layout="vertical"
             verticalAlign="middle"
             align="right"
-            formatter={(value) => <span style={{ color: "#333", fontWeight: 600, fontSize: "0.9rem" }}>{value}</span>}
+            formatter={(value) => <span style={{ color: "#333", fontWeight: 600, fontSize: "0.95rem" }}>{value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -516,7 +520,7 @@ const CategoryChart = () => {
 }
 
 /**
- * Revenue vs Target Chart - Lower Left Quadrant
+ * Revenue vs Target Chart - Lower Left Quadrant (Q3)
  * Enhanced bar chart with improved styling
  */
 const RevenueChart = () => {
@@ -533,27 +537,27 @@ const RevenueChart = () => {
   return (
     <ChartContainer title="Revenue vs Target" quadrant="Q3">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={revenueData} margin={{ top: 25, right: 35, left: 25, bottom: 25 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 500 }} />
+        <BarChart data={revenueData} margin={{ top: 30, right: 40, left: 30, bottom: 30 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e8eaed" />
+          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 13, fontWeight: 500 }} />
           <YAxis
             axisLine={false}
             tickLine={false}
             tickFormatter={(value) => `${value / 1000}k`}
-            tick={{ fontSize: 12, fontWeight: 500 }}
+            tick={{ fontSize: 13, fontWeight: 500 }}
           />
           <RechartsTooltip
             formatter={(value) => [`KSh ${value.toLocaleString()}`]}
             contentStyle={{
               backgroundColor: "#fff",
               border: "1px solid #e0e0e0",
-              borderRadius: 8,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              borderRadius: 10,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
             }}
           />
           <Legend />
-          <Bar dataKey="revenue" fill="#1976d2" radius={[6, 6, 0, 0]} barSize={25} name="Revenue" />
-          <Bar dataKey="target" fill="#4caf50" radius={[6, 6, 0, 0]} barSize={25} name="Target" />
+          <Bar dataKey="revenue" fill="#1976d2" radius={[6, 6, 0, 0]} barSize={28} name="Revenue" />
+          <Bar dataKey="target" fill="#4caf50" radius={[6, 6, 0, 0]} barSize={28} name="Target" />
         </BarChart>
       </ResponsiveContainer>
     </ChartContainer>
@@ -561,7 +565,7 @@ const RevenueChart = () => {
 }
 
 /**
- * Customer Acquisition Chart - Lower Right Quadrant
+ * Customer Acquisition Chart - Lower Right Quadrant (Q4)
  * Enhanced line chart with improved visual design
  */
 const CustomerAcquisitionChart = () => {
@@ -578,16 +582,16 @@ const CustomerAcquisitionChart = () => {
   return (
     <ChartContainer title="Customer Acquisition" quadrant="Q4">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={acquisitionData} margin={{ top: 25, right: 35, left: 25, bottom: 25 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 500 }} />
-          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 500 }} />
+        <LineChart data={acquisitionData} margin={{ top: 30, right: 40, left: 30, bottom: 30 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e8eaed" />
+          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 13, fontWeight: 500 }} />
+          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 13, fontWeight: 500 }} />
           <RechartsTooltip
             contentStyle={{
               backgroundColor: "#fff",
               border: "1px solid #e0e0e0",
-              borderRadius: 8,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              borderRadius: 10,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
             }}
           />
           <Legend />
@@ -673,12 +677,12 @@ const TopProducts = () => {
         // Enhanced styling for full-width section
         p: 4,
         borderRadius: 3,
-        mx: 1.5, // Consistent with quadrant margins
-        my: 2, // Vertical margin for separation from quadrants
-        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-        border: "1px solid rgba(0,0,0,0.06)",
+        mx: 2, // Consistent with quadrant margins
+        my: 3, // Vertical margin for separation from quadrants
+        boxShadow: "0 6px 24px rgba(0,0,0,0.1)",
+        border: "1px solid rgba(0,0,0,0.08)",
         "&:hover": {
-          boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
         },
       }}
     >
@@ -688,16 +692,16 @@ const TopProducts = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          mb: 3.5,
-          pb: 2,
-          borderBottom: "2px solid #f5f5f5",
+          mb: 4,
+          pb: 2.5,
+          borderBottom: "2px solid #f0f0f0",
         }}
       >
         <Typography
           variant="h5"
           sx={{
             fontWeight: 700,
-            fontSize: "1.3rem",
+            fontSize: "1.4rem",
             color: "#1a1a1a",
             letterSpacing: "-0.02em",
           }}
@@ -708,10 +712,11 @@ const TopProducts = () => {
           label="Full Width"
           size="small"
           sx={{
-            backgroundColor: alpha("#4caf50", 0.1),
+            backgroundColor: alpha("#4caf50", 0.12),
             color: "#4caf50",
-            fontWeight: 600,
-            fontSize: "0.75rem",
+            fontWeight: 700,
+            fontSize: "0.8rem",
+            height: 28,
           }}
         />
       </Box>
@@ -720,8 +725,8 @@ const TopProducts = () => {
       <TableContainer
         sx={{
           borderRadius: 2,
-          border: "1px solid #f0f0f0",
-          backgroundColor: "#fafafa",
+          border: "1px solid #f0f2f5",
+          backgroundColor: "#fafbfc",
         }}
       >
         <Table size="medium" stickyHeader>
@@ -731,10 +736,11 @@ const TopProducts = () => {
               <TableCell
                 sx={{
                   fontWeight: 700,
-                  backgroundColor: "#f9f9f9",
-                  py: 3,
-                  fontSize: "0.95rem",
-                  borderBottom: "2px solid #e0e0e0",
+                  backgroundColor: "#f8f9fa",
+                  py: 3.5,
+                  fontSize: "1rem",
+                  borderBottom: "2px solid #e9ecef",
+                  color: "#495057",
                 }}
               >
                 Product
@@ -743,10 +749,11 @@ const TopProducts = () => {
                 align="right"
                 sx={{
                   fontWeight: 700,
-                  backgroundColor: "#f9f9f9",
-                  py: 3,
-                  fontSize: "0.95rem",
-                  borderBottom: "2px solid #e0e0e0",
+                  backgroundColor: "#f8f9fa",
+                  py: 3.5,
+                  fontSize: "1rem",
+                  borderBottom: "2px solid #e9ecef",
+                  color: "#495057",
                 }}
               >
                 Sales
@@ -755,10 +762,11 @@ const TopProducts = () => {
                 align="right"
                 sx={{
                   fontWeight: 700,
-                  backgroundColor: "#f9f9f9",
-                  py: 3,
-                  fontSize: "0.95rem",
-                  borderBottom: "2px solid #e0e0e0",
+                  backgroundColor: "#f8f9fa",
+                  py: 3.5,
+                  fontSize: "1rem",
+                  borderBottom: "2px solid #e9ecef",
+                  color: "#495057",
                 }}
               >
                 Revenue
@@ -767,10 +775,11 @@ const TopProducts = () => {
                 align="right"
                 sx={{
                   fontWeight: 700,
-                  backgroundColor: "#f9f9f9",
-                  py: 3,
-                  fontSize: "0.95rem",
-                  borderBottom: "2px solid #e0e0e0",
+                  backgroundColor: "#f8f9fa",
+                  py: 3.5,
+                  fontSize: "1rem",
+                  borderBottom: "2px solid #e9ecef",
+                  color: "#495057",
                 }}
               >
                 Growth
@@ -789,21 +798,21 @@ const TopProducts = () => {
                   transition: "all 0.2s ease",
                   "&:hover": {
                     backgroundColor: alpha("#1976d2", 0.06),
-                    transform: "scale(1.01)",
+                    transform: "scale(1.005)",
                   },
-                  backgroundColor: index % 2 === 0 ? "#fff" : "#fafafa", // Alternating row colors
+                  backgroundColor: index % 2 === 0 ? "#fff" : "#fafbfc", // Alternating row colors
                 }}
               >
                 {/* Enhanced product cell */}
-                <TableCell sx={{ py: 3 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
+                <TableCell sx={{ py: 3.5 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
                     <Avatar
                       src={product.image}
                       sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 2,
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                        width: 52,
+                        height: 52,
+                        borderRadius: 2.5,
+                        boxShadow: "0 3px 12px rgba(0,0,0,0.12)",
                       }}
                       variant="rounded"
                       alt={product.name}
@@ -812,7 +821,7 @@ const TopProducts = () => {
                       variant="body1"
                       sx={{
                         fontWeight: 600,
-                        fontSize: "0.95rem",
+                        fontSize: "1rem",
                         color: "#1a1a1a",
                       }}
                     >
@@ -822,12 +831,12 @@ const TopProducts = () => {
                 </TableCell>
 
                 {/* Enhanced sales cell */}
-                <TableCell align="right" sx={{ py: 3 }}>
+                <TableCell align="right" sx={{ py: 3.5 }}>
                   <Typography
                     variant="body1"
                     sx={{
                       fontWeight: 700,
-                      fontSize: "0.95rem",
+                      fontSize: "1rem",
                       color: "#1a1a1a",
                     }}
                   >
@@ -836,13 +845,13 @@ const TopProducts = () => {
                 </TableCell>
 
                 {/* Enhanced revenue cell */}
-                <TableCell align="right" sx={{ py: 3 }}>
+                <TableCell align="right" sx={{ py: 3.5 }}>
                   <Typography
                     variant="body1"
                     sx={{
                       fontWeight: 700,
                       color: "#1976d2",
-                      fontSize: "0.95rem",
+                      fontSize: "1rem",
                     }}
                   >
                     {product.revenue}
@@ -850,7 +859,7 @@ const TopProducts = () => {
                 </TableCell>
 
                 {/* Enhanced growth cell */}
-                <TableCell align="right" sx={{ py: 3 }}>
+                <TableCell align="right" sx={{ py: 3.5 }}>
                   <Chip
                     icon={product.trend === "up" ? <TrendingUp fontSize="small" /> : <TrendingDown fontSize="small" />}
                     label={product.growth}
@@ -859,7 +868,8 @@ const TopProducts = () => {
                       backgroundColor: product.trend === "up" ? alpha("#4caf50", 0.12) : alpha("#f44336", 0.12),
                       color: product.trend === "up" ? "#2e7d32" : "#d32f2f",
                       fontWeight: 700,
-                      fontSize: "0.85rem",
+                      fontSize: "0.9rem",
+                      height: 32,
                       "& .MuiChip-icon": {
                         color: "inherit",
                       },
@@ -877,7 +887,7 @@ const TopProducts = () => {
 
 /**
  * Main Enhanced Dashboard Component
- * Implements cartesian plane layout with optimal spacing and responsive design
+ * Implements clean cartesian plane layout with optimal spacing and responsive design
  */
 const EnhancedDashboard = () => {
   const [loading, setLoading] = useState(true)
@@ -943,92 +953,15 @@ const EnhancedDashboard = () => {
         backgroundColor: "#f9fafc", // Light background
         // Enhanced responsive padding for cartesian layout
         px: { xs: 2, sm: 3, md: 4, lg: 5 }, // Progressive padding
-        py: { xs: 2, sm: 3, md: 4 }, // Vertical padding
+        py: { xs: 3, sm: 4, md: 5 }, // Vertical padding
         boxSizing: "border-box",
         margin: 0,
         overflow: "auto", // Allow scrolling if needed
       }}
     >
-      {/* Enhanced Dashboard Header Section */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 5, // Increased margin for better separation
-          flexWrap: "wrap",
-          gap: 3,
-          maxWidth: "none",
-          // Enhanced header styling
-          px: 3,
-          py: 2,
-          backgroundColor: "#fff",
-          borderRadius: 3,
-          boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-          border: "1px solid rgba(0,0,0,0.04)",
-        }}
-      >
-        {/* Enhanced title section */}
-        <Box>
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 800,
-              color: "#1a1a1a",
-              mb: 1.5,
-              fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
-              letterSpacing: "-0.03em",
-              background: "linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Dashboard Overview
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              color: "#666",
-              fontSize: "1.2rem",
-              fontWeight: 500,
-            }}
-          >
-            Welcome back! Here's what's happening with your store today.
-          </Typography>
-        </Box>
-
-        {/* Enhanced date indicator */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            backgroundColor: "#f8f9fa",
-            px: 3,
-            py: 2,
-            borderRadius: 2,
-            border: "1px solid #e9ecef",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-          }}
-        >
-          <CalendarToday sx={{ color: "#1976d2", fontSize: 24 }} />
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 600,
-              color: "#1a1a1a",
-              fontSize: "1rem",
-            }}
-          >
-            This Month
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* Enhanced Metrics Grid Section */}
-      <Grid container spacing={2} sx={{ mb: 6, width: "100%", maxWidth: "none" }}>
-        <Grid item xs={6} sm={4} md={2.4}>
+      {/* Streamlined Metrics Grid Section - Only 4 metrics */}
+      <Grid container spacing={3} sx={{ mb: 6, width: "100%", maxWidth: "none" }}>
+        <Grid item xs={6} sm={3} md={3}>
           <MetricCard
             title="Total Sales"
             value="KSh 1.2M"
@@ -1039,7 +972,7 @@ const EnhancedDashboard = () => {
             subtitle="vs. last month"
           />
         </Grid>
-        <Grid item xs={6} sm={4} md={2.4}>
+        <Grid item xs={6} sm={3} md={3}>
           <MetricCard
             title="Total Orders"
             value="2,847"
@@ -1050,7 +983,7 @@ const EnhancedDashboard = () => {
             subtitle="vs. last month"
           />
         </Grid>
-        <Grid item xs={6} sm={4} md={2.4}>
+        <Grid item xs={6} sm={3} md={3}>
           <MetricCard
             title="Active Customers"
             value="1,234"
@@ -1061,7 +994,7 @@ const EnhancedDashboard = () => {
             subtitle="vs. last month"
           />
         </Grid>
-        <Grid item xs={6} sm={6} md={2.4}>
+        <Grid item xs={6} sm={3} md={3}>
           <MetricCard
             title="Products in Stock"
             value="456"
@@ -1069,17 +1002,6 @@ const EnhancedDashboard = () => {
             changeType="decrease"
             icon={<Inventory />}
             color="#9c27b0"
-            subtitle="vs. last month"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
-          <MetricCard
-            title="Conversion Rate"
-            value="3.2%"
-            change="+0.5%"
-            changeType="increase"
-            icon={<TrendingUp />}
-            color="#e91e63"
             subtitle="vs. last month"
           />
         </Grid>
@@ -1091,46 +1013,53 @@ const EnhancedDashboard = () => {
           width: "100%",
           maxWidth: "none",
           mb: 6, // Margin before full-width section
-          // Create cartesian plane container
+          // Create cartesian plane container with enhanced visual structure
           display: "flex",
           flexDirection: "column",
-          gap: 4, // Vertical gap between quadrant rows
-          // Optional: Add subtle border to emphasize plane structure
-          border: "2px dashed rgba(25, 118, 210, 0.1)",
+          gap: 5, // Vertical gap between quadrant rows
+          // Enhanced plane boundary styling
+          border: "3px dashed rgba(25, 118, 210, 0.15)",
           borderRadius: 4,
-          p: 3,
-          backgroundColor: "rgba(25, 118, 210, 0.02)",
+          p: 4,
+          backgroundColor: "rgba(25, 118, 210, 0.03)",
+          position: "relative",
+          // Add subtle grid pattern
+          backgroundImage: `
+            linear-gradient(rgba(25, 118, 210, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(25, 118, 210, 0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: "50px 50px",
         }}
       >
         {/* UPPER QUADRANTS ROW */}
-        <Grid container spacing={4} sx={{ width: "100%", maxWidth: "none" }}>
-          {/* UPPER LEFT QUADRANT - Q1 */}
-          <Grid item xs={12} lg={6} sx={{ height: { xs: "auto", lg: 500 } }}>
-            <Box sx={{ height: "100%", minHeight: 450 }}>
+        <Grid container spacing={5} sx={{ width: "100%", maxWidth: "none" }}>
+          {/* UPPER LEFT QUADRANT - Q1 - Sales Performance */}
+          <Grid item xs={12} lg={6} sx={{ height: { xs: "auto", lg: 550 } }}>
+            <Box sx={{ height: "100%", minHeight: 500 }}>
               <SalesTrendChart />
             </Box>
           </Grid>
 
-          {/* UPPER RIGHT QUADRANT - Q2 */}
-          <Grid item xs={12} lg={6} sx={{ height: { xs: "auto", lg: 500 } }}>
-            <Box sx={{ height: "100%", minHeight: 450 }}>
+          {/* UPPER RIGHT QUADRANT - Q2 - Sales by Category */}
+          <Grid item xs={12} lg={6} sx={{ height: { xs: "auto", lg: 550 } }}>
+            <Box sx={{ height: "100%", minHeight: 500 }}>
               <CategoryChart />
             </Box>
           </Grid>
         </Grid>
 
         {/* LOWER QUADRANTS ROW */}
-        <Grid container spacing={4} sx={{ width: "100%", maxWidth: "none" }}>
-          {/* LOWER LEFT QUADRANT - Q3 */}
-          <Grid item xs={12} lg={6} sx={{ height: { xs: "auto", lg: 500 } }}>
-            <Box sx={{ height: "100%", minHeight: 450 }}>
+        <Grid container spacing={5} sx={{ width: "100%", maxWidth: "none" }}>
+          {/* LOWER LEFT QUADRANT - Q3 - Revenue vs Target */}
+          <Grid item xs={12} lg={6} sx={{ height: { xs: "auto", lg: 550 } }}>
+            <Box sx={{ height: "100%", minHeight: 500 }}>
               <RevenueChart />
             </Box>
           </Grid>
 
-          {/* LOWER RIGHT QUADRANT - Q4 */}
-          <Grid item xs={12} lg={6} sx={{ height: { xs: "auto", lg: 500 } }}>
-            <Box sx={{ height: "100%", minHeight: 450 }}>
+          {/* LOWER RIGHT QUADRANT - Q4 - Customer Acquisition */}
+          <Grid item xs={12} lg={6} sx={{ height: { xs: "auto", lg: 550 } }}>
+            <Box sx={{ height: "100%", minHeight: 500 }}>
               <CustomerAcquisitionChart />
             </Box>
           </Grid>
