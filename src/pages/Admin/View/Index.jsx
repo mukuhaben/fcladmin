@@ -17,7 +17,7 @@ import {
 import { Add as AddIcon, List as ListIcon } from "@mui/icons-material"
 import { useNavigate } from "react-router-dom"
 import AdminNavigation from "../../../components/admin/AdminNavigation"
-import AdminDashboard from "../../../components/admin/AdminDashboard"
+import EnhancedDashboard from "../../../components/admin/EnhancedDashboard"
 import NewItemForm from "../../../components/admin/NewItemForm"
 import ManageItems from "../../../components/admin/ManageItems"
 import CategoryManagement from "../../../components/admin/CategoryManagement"
@@ -37,7 +37,16 @@ function TabPanel(props) {
       {...other}
       style={{ width: "100%" }}
     >
-      {value === index && <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>{children}</Box>}
+      {value === index && (
+        <Box
+          sx={{
+            p: { xs: 0, sm: 0 },
+            minHeight: "calc(100vh - 120px)",
+          }}
+        >
+          {children}
+        </Box>
+      )}
     </div>
   )
 }
@@ -351,11 +360,18 @@ const AdminPage = () => {
 
       {/* E-commerce Success Messages */}
       {successMessage && (
-        <Container maxWidth="xl" sx={{ mt: 2 }}>
-          <Alert severity="success" onClose={() => setSuccessMessage("")} sx={{ fontFamily: "'Poppins', sans-serif" }}>
+        <Box sx={{ px: { xs: 2, sm: 3 }, pt: 2 }}>
+          <Alert
+            severity="success"
+            onClose={() => setSuccessMessage("")}
+            sx={{
+              fontFamily: "'Poppins', sans-serif",
+              borderRadius: 2,
+            }}
+          >
             {successMessage}
           </Alert>
-        </Container>
+        </Box>
       )}
 
       {/* CRUD Operation Notifications */}
@@ -368,23 +384,35 @@ const AdminPage = () => {
         <Alert
           onClose={handleCloseNotification}
           severity={crudNotification.severity}
-          sx={{ fontFamily: "'Poppins', sans-serif" }}
+          sx={{
+            fontFamily: "'Poppins', sans-serif",
+            borderRadius: 2,
+          }}
         >
           {crudNotification.message}
         </Alert>
       </Snackbar>
 
-      {/* E-commerce Admin Content - Single Header Only */}
-      <Box component="main" sx={{ flexGrow: 1 }}>
+      {/* E-commerce Admin Content */}
+      <Box component="main" sx={{ flexGrow: 1, bgcolor: "#f8fafc" }}>
         {/* Dashboard - E-commerce Analytics */}
         <TabPanel value={tabValue} index={0}>
-          <AdminDashboard />
+          <EnhancedDashboard />
         </TabPanel>
 
         {/* Item Master - E-commerce Product Management with CRUD */}
         <TabPanel value={tabValue} index={1}>
           {/* Clean sub-navigation without redundant headers */}
-          <Paper sx={{ mb: 3, bgcolor: "white", borderRadius: 2, overflow: "hidden" }}>
+          <Paper
+            sx={{
+              mb: 3,
+              bgcolor: "white",
+              borderRadius: 2,
+              overflow: "hidden",
+              mx: { xs: 2, sm: 3 },
+              mt: 3,
+            }}
+          >
             <Tabs
               value={subTabValue}
               onChange={handleSubTabChange}

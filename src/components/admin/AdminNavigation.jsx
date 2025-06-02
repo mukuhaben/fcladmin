@@ -4,7 +4,6 @@ import { useState, useRef, useCallback } from "react"
 import {
   AppBar,
   Toolbar,
-  Typography,
   Box,
   IconButton,
   Avatar,
@@ -21,7 +20,6 @@ import {
   MenuList,
   ListItemIcon,
   ListItemText,
-  Badge,
 } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import {
@@ -41,32 +39,32 @@ import {
   Visibility as ViewIcon,
   Store as StoreIcon,
   LocationOn as LocationIcon,
-  Notifications,
 } from "@mui/icons-material"
 import { useNavigate } from "react-router-dom"
 
-// Clean, modern admin navigation button
+// Clean, modern admin navigation button with white text on blue background
 const AdminNavButton = styled(Button)(({ theme, active }) => ({
-  color: active ? "#1976d2" : "#555",
-  backgroundColor: active ? "#f0f7ff" : "transparent",
+  color: active ? "#ffffff" : "rgba(255,255,255,0.8)",
+  backgroundColor: active ? "rgba(255,255,255,0.15)" : "transparent",
   textTransform: "none",
-  fontSize: "0.875rem",
+  fontSize: "0.8rem",
   fontWeight: active ? 600 : 500,
   fontFamily: "'Poppins', sans-serif",
-  padding: "8px 16px",
-  borderRadius: "8px",
+  padding: "6px 12px",
+  borderRadius: "6px",
   minWidth: "auto",
-  margin: "0 4px",
+  margin: "0 2px",
+  height: "36px",
   transition: "all 0.2s ease",
   "&:hover": {
-    backgroundColor: active ? "#e3f2fd" : "#f5f5f5",
-    color: "#1976d2",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    color: "#ffffff",
   },
   "& .MuiButton-startIcon": {
-    marginRight: "6px",
+    marginRight: "4px",
   },
   "& .MuiButton-endIcon": {
-    marginLeft: "4px",
+    marginLeft: "2px",
   },
 }))
 
@@ -286,7 +284,7 @@ const AdminNavigation = ({
         {
           name: "offset",
           options: {
-            offset: [0, 8],
+            offset: [0, 4],
           },
         },
       ]}
@@ -362,9 +360,9 @@ const AdminNavigation = ({
       position="static"
       elevation={0}
       sx={{
-        bgcolor: "white",
-        borderBottom: "1px solid #e0e0e0",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+        bgcolor: "#1976d2", // Blue background
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
       }}
     >
       <Toolbar
@@ -373,23 +371,10 @@ const AdminNavigation = ({
           alignItems: "center",
           justifyContent: "space-between",
           px: { xs: 1, sm: 2, md: 3 },
-          minHeight: "64px !important",
+          minHeight: "56px !important",
+          height: "56px",
         }}
       >
-        {/* Admin title */}
-        <Typography
-          variant="h6"
-          sx={{
-            fontFamily: "'Poppins', sans-serif",
-            fontWeight: 600,
-            color: "#1976d2",
-            mr: 2,
-            display: { xs: "none", sm: "block" },
-          }}
-        >
-          admin
-        </Typography>
-
         {/* Main navigation items in a single row */}
         <Box
           sx={{
@@ -649,61 +634,51 @@ const AdminNavigation = ({
           </Box>
         </Box>
 
-        {/* Right side icons */}
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+        {/* Right side icons - Store and Profile only */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
           {/* Store view icon */}
           <IconButton
-            size="medium"
+            size="small"
             color="inherit"
             onClick={handleNavigateHome}
             title="Go to Customer Store"
             sx={{
-              color: "#666",
-              "&:hover": { color: "#1976d2" },
+              color: "rgba(255,255,255,0.8)",
+              "&:hover": { color: "#ffffff", bgcolor: "rgba(255,255,255,0.1)" },
+              borderRadius: "8px",
+              p: 1,
             }}
           >
             <StoreIcon fontSize="small" />
           </IconButton>
 
-          {/* Notifications */}
-          <IconButton
-            size="medium"
-            color="inherit"
-            sx={{
-              color: "#666",
-              "&:hover": { color: "#1976d2" },
-              ml: 1,
-            }}
-          >
-            <Badge badgeContent={4} color="error">
-              <Notifications fontSize="small" />
-            </Badge>
-          </IconButton>
-
           {/* Profile */}
           <IconButton
-            size="medium"
+            size="small"
             edge="end"
             aria-label="account of current user"
             aria-controls={menuId}
             aria-haspopup="true"
             onClick={handleProfileMenuOpen}
             color="inherit"
+            title={`Profile: ${currentUser?.username || "Admin"}`}
             sx={{
-              ml: 1,
-              color: "#666",
-              "&:hover": { color: "#1976d2" },
+              color: "rgba(255,255,255,0.8)",
+              "&:hover": { color: "#ffffff", bgcolor: "rgba(255,255,255,0.1)" },
+              borderRadius: "8px",
+              p: 0.5,
             }}
           >
             <Avatar
               sx={{
-                width: 32,
-                height: 32,
-                bgcolor: "#1976d2",
-                color: "white",
+                width: 28,
+                height: 28,
+                bgcolor: "rgba(255,255,255,0.2)",
+                color: "#ffffff",
                 fontFamily: "'Poppins', sans-serif",
                 fontWeight: 600,
-                fontSize: "0.875rem",
+                fontSize: "0.75rem",
+                border: "1px solid rgba(255,255,255,0.3)",
               }}
             >
               {currentUser?.username?.charAt(0)?.toUpperCase() || "A"}
