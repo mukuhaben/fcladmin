@@ -22,7 +22,9 @@ import NewItemForm from "../../../components/admin/NewItemForm"
 import ManageItems from "../../../components/admin/ManageItems"
 import CategoryManagement from "../../../components/admin/CategoryManagement"
 import InventoryManagement from "../../../components/admin/InventoryManagement"
-import SalesAgentManagement from "../../../components/admin/SalesAgentManagement"
+import SalesManagement from "../../../components/admin/SalesManagement"
+import SupplierManagement from "../../../components/admin/SupplierManagement"
+import SalesAgentAdminPanel from "../../../components/admin/SalesAgentAdminPanel"
 
 // Tab panel component for clean content rendering
 function TabPanel(props) {
@@ -63,6 +65,7 @@ const AdminPage = () => {
   const [successMessage, setSuccessMessage] = useState("")
   const [editingItem, setEditingItem] = useState(null)
   const [crudNotification, setCrudNotification] = useState({ open: false, message: "", severity: "success" })
+  const [salesSubTabValue, setSalesSubTabValue] = useState(0)
 
   // E-commerce data state for CRUD operations
   const [items, setItems] = useState([])
@@ -252,6 +255,10 @@ const AdminPage = () => {
     setSubTabValue(newValue)
   }
 
+  const handleSalesSubTabChange = (event, newValue) => {
+    setSalesSubTabValue(newValue)
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("currentUser")
     navigate("/")
@@ -355,6 +362,7 @@ const AdminPage = () => {
         activeTab={tabValue}
         onTabChange={handleTabChange}
         onItemMasterSubTabChange={handleSubTabChange}
+        onSalesSubTabChange={handleSalesSubTabChange}
         onCRUDOperation={handleCRUDOperation}
       />
 
@@ -456,14 +464,7 @@ const AdminPage = () => {
 
         {/* Sales - E-commerce Sales Management with CRUD */}
         <TabPanel value={tabValue} index={3}>
-          <Paper sx={{ p: 4, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontFamily: "'Poppins', sans-serif" }}>
-              E-commerce Sales Dashboard with CRUD Operations
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ fontFamily: "'Poppins', sans-serif" }}>
-              Create, Read, Update, Delete sales orders and manage customer transactions.
-            </Typography>
-          </Paper>
+          <SalesManagement subTabValue={salesSubTabValue} onSubTabChange={handleSalesSubTabChange} />
         </TabPanel>
 
         {/* Inventory - E-commerce Stock Management with CRUD */}
@@ -473,19 +474,24 @@ const AdminPage = () => {
 
         {/* Suppliers - E-commerce Vendor Management with CRUD */}
         <TabPanel value={tabValue} index={5}>
+          <SupplierManagement />
+        </TabPanel>
+
+        {/* Locations - E-commerce Location Management with CRUD */}
+        <TabPanel value={tabValue} index={6}>
           <Paper sx={{ p: 4, textAlign: "center", borderRadius: 2 }}>
             <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontFamily: "'Poppins', sans-serif" }}>
-              E-commerce Supplier Portal with CRUD Operations
+              Location Management Portal with CRUD Operations
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ fontFamily: "'Poppins', sans-serif" }}>
-              Manage supplier information, create purchase orders, and handle vendor relationships.
+              Manage Westlands, Parklands, and other branch locations.
             </Typography>
           </Paper>
         </TabPanel>
 
         {/* Sales Agents - E-commerce Team Management with CRUD */}
-        <TabPanel value={tabValue} index={6}>
-          <SalesAgentManagement />
+        <TabPanel value={tabValue} index={7}>
+          <SalesAgentAdminPanel />
         </TabPanel>
       </Box>
     </Box>
