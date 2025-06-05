@@ -143,7 +143,7 @@ export default function InventoryManagement() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Inventory Management
+        Goods Received Note
       </Typography>
 
       {/* Summary Cards */}
@@ -184,7 +184,7 @@ export default function InventoryManagement() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+      {/*  <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -201,6 +201,7 @@ export default function InventoryManagement() {
             </CardContent>
           </Card>
         </Grid>
+        */}
 
         <Grid item xs={12} sm={6} md={3}>
           <Card>
@@ -225,11 +226,12 @@ export default function InventoryManagement() {
       <Paper sx={{ p: 3 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
           <Typography variant="h6" fontWeight="bold">
-            Inventory Items
+            Goods Received
           </Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
+         {/* <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
             Add Item
           </Button>
+          */}
         </Box>
 
         <TableContainer>
@@ -237,7 +239,7 @@ export default function InventoryManagement() {
             <TableHead>
               <TableRow sx={{ bgcolor: "#f8f9fa" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Item Name</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>SKU</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Item Code</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }} align="center">
                   Stock
                 </TableCell>

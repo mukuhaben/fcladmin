@@ -478,18 +478,25 @@ const AdminNavigation = ({
 
             {renderCRUDDropdown("sales", dropdownStates.sales, dropdownRefs.sales, [
               {
-                label: "New Sale",
-                description: "Create sales order",
+                label: "Purchase Order",
+                description: "View Purchase orders",
                 icon: <AddIcon sx={{ color: "#2196f3", fontSize: 18 }} />,
                 action: "create",
-                data: { type: "sale" },
+                data: { type: "Purchase order" },
               },
               {
-                label: "View Sales",
-                description: "Customer onboarded by agents",
+                label: "    Invoices",
+                description: "Invoices",
                 icon: <ViewIcon sx={{ color: "#4caf50", fontSize: 18 }} />,
                 action: "read",
-                data: { type: "sale" },
+                data: { type: "Invoices" },
+              },
+                 {
+                label: "    Receipt",
+                description: "Customer receipt:order summary",
+                icon: <ViewIcon sx={{ color: "#4caf50", fontSize: 18 }} />,
+                action: "read",
+                data: { type: "Receipt" },
               },
             ])}
           </Box>
@@ -506,20 +513,20 @@ const AdminNavigation = ({
               endIcon={<KeyboardArrowDown sx={{ fontSize: 16 }} />}
               active={activeTab === 4}
             >
-              Inventory
+              GRN
             </AdminNavButton>
 
             {renderCRUDDropdown("inventory", dropdownStates.inventory, dropdownRefs.inventory, [
               {
-                label: "Add Stock",
-                description: "Increase inventory",
+                label: "GRN",
+                description: "Goods Received",
                 icon: <AddIcon sx={{ color: "#2196f3", fontSize: 18 }} />,
                 action: "create",
                 data: { type: "stock" },
               },
               {
-                label: "View Inventory",
-                description: "Check stock levels",
+                label: "",
+                description: "",
                 icon: <ViewIcon sx={{ color: "#4caf50", fontSize: 18 }} />,
                 action: "read",
                 data: { type: "stock" },

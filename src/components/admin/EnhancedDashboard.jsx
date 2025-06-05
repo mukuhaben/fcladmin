@@ -294,20 +294,7 @@ const ChartContainer = ({ title, children, height = 400, actions, quadrant = "" 
               {isFullscreen ? <FullscreenExit fontSize="small" /> : <Fullscreen fontSize="small" />}
             </IconButton>
           </Tooltip>
-          <Tooltip title="More Options">
-            <IconButton
-              size="small"
-              onClick={handleClick}
-              sx={{
-                backgroundColor: alpha("#666", 0.1),
-                "&:hover": { backgroundColor: alpha("#666", 0.2) },
-                width: 36,
-                height: 36,
-              }}
-            >
-              <MoreVert fontSize="small" />
-            </IconButton>
-          </Tooltip>
+        
         </Box>
 
         {/* Enhanced dropdown menu */}
@@ -939,7 +926,7 @@ const EnhancedDashboard = () => {
             mt: 1,
           }}
         >
-          Preparing your cartesian plane layout
+          
         </Typography>
       </Box>
     )
