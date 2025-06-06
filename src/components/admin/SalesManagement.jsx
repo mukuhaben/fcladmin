@@ -28,10 +28,12 @@ import {
   Badge,
   Tooltip,
   LinearProgress,
+  Snackbar,
 } from "@mui/material"
 import {
   Add as AddIcon,
   Visibility as ViewIcon,
+  Edit as EditIcon,
   Email as EmailIcon,
   Print as PrintIcon,
   Download as DownloadIcon,
@@ -42,12 +44,16 @@ import {
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
   Business as SupplierIcon,
-  Category as CategoryIcon,
   Timer as TimerIcon,
   Refresh as RefreshIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material"
 
-// Tab Panel Component
+// Import the form components
+import PurchaseOrderForm from "./PurchaseOrderForm"
+import InvoiceForm from "./InvoiceForm"
+
+// Tab Panel Component for organizing content
 function TabPanel(props) {
   const { children, value, index, ...other } = props
   return (
@@ -63,23 +69,56 @@ function TabPanel(props) {
   )
 }
 
+/**
+ * SalesManagement Component
+ *
+ * Comprehensive sales management system that handles:
+ * - Purchase Orders (PO) with manual creation
+ * - Invoices with full CRUD operations
+ * - Customer receipts and order summaries
+ * - Automated batch processing
+ * - Integration with supplier and inventory systems
+ */
 const SalesManagement = () => {
+  // Tab management state
   const [tabValue, setTabValue] = useState(0)
+
+  // Data state for purchase orders, invoices, and receipts
   const [purchaseOrders, setPurchaseOrders] = useState([])
   const [invoices, setInvoices] = useState([])
   const [receipts, setReceipts] = useState([])
   const [customerOrders, setCustomerOrders] = useState([])
-  const [batchingStatus, setBatchingStatus] = useState("idle")
+
+  // Form dialog states
+  const [poFormOpen, setPOFormOpen] = useState(false)
+  const [invoiceFormOpen, setInvoiceFormOpen] = useState(false)
+  const [editingPO, setEditingPO] = useState(null)
+  const [editingInvoice, setEditingInvoice] = useState(null)
+
+  // View dialog states
   const [selectedPO, setSelectedPO] = useState(null)
   const [selectedInvoice, setSelectedInvoice] = useState(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [dialogType, setDialogType] = useState("")
+  const [viewPODialogOpen, setViewPODialogOpen] = useState(false)
+  const [viewInvoiceDialogOpen, setViewInvoiceDialogOpen] = useState(false)
+
+  // Batch processing state
+  const [batchingStatus, setBatchingStatus] = useState("idle")
   const [batchingProgress, setBatchingProgress] = useState(0)
   const [lastBatchTime, setLastBatchTime] = useState(null)
 
-  // Sample data initialization
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  })
+
+  /**
+   * Initialize sample data and set up automatic batch processing
+   */
   useEffect(() => {
     initializeSampleData()
+
     // Set up automatic batching interval (every 30 minutes in production)
     const batchInterval = setInterval(
       () => {
@@ -91,8 +130,12 @@ const SalesManagement = () => {
     return () => clearInterval(batchInterval)
   }, [])
 
+  /**
+   * Initialize sample data for demonstration
+   * In production, this would fetch from API endpoints
+   */
   const initializeSampleData = () => {
-    // Sample customer orders
+    // Sample customer orders for batch processing
     const sampleOrders = [
       {
         id: "ORD001",
@@ -136,15 +179,6 @@ const SalesManagement = () => {
             unitPrice: 320.0,
             taxRate: 16,
           },
-          {
-            productCode: "P0401001",
-            name: "Petty Cash Voucher White A6 Ref 283",
-            category: "General Stationery",
-            supplier: "KB Stationery Ltd",
-            quantity: 10,
-            unitPrice: 39.0,
-            taxRate: 16,
-          },
         ],
         orderDate: new Date(),
         status: "pending",
@@ -152,7 +186,7 @@ const SalesManagement = () => {
       },
     ]
 
-    // Sample invoices based on the provided invoice
+    // Sample invoices with comprehensive data
     const sampleInvoices = [
       {
         id: "INV001",
@@ -161,13 +195,16 @@ const SalesManagement = () => {
         customerName: "Paw Pack Ltd",
         customerAddress: "Ring Road Parklands Opp Apollo Centre\nNairobi K 00100\nKenya",
         customerTaxId: "P052296194R",
+        customerEmail: "info@pawpack.co.ke",
+        customerPhone: "+254 722 123 456",
         invoiceDate: new Date("2024-11-21"),
         deliveryDate: new Date("2024-11-21"),
+        dueDate: new Date("2024-12-21"),
         source: "S00004",
         items: [
           {
             productCode: "L0202004",
-            description: "Afri Multipurpose Lables K11 19*13mm White",
+            description: "Afri Multipurpose Labels K11 19*13mm White",
             quantity: 1,
             unitPrice: 50.0,
             taxRate: 16,
@@ -183,33 +220,6 @@ const SalesManagement = () => {
             taxableAmount: 142.24,
             totalAmount: 165.0,
           },
-          {
-            productCode: "C0201003",
-            description: "Counter Books KB A4 3 Quire REF 233",
-            quantity: 1,
-            unitPrice: 320.0,
-            taxRate: 16,
-            taxableAmount: 275.86,
-            totalAmount: 320.0,
-          },
-          {
-            productCode: "P0401001",
-            description: "Petty Cash Voucher White A6 Ref 283",
-            quantity: 6,
-            unitPrice: 39.0,
-            taxRate: 16,
-            taxableAmount: 201.72,
-            totalAmount: 234.0,
-          },
-          {
-            productCode: "DELIVERY",
-            description: "Westlands Delivery Charges",
-            quantity: 1,
-            unitPrice: 1.0,
-            taxRate: 16,
-            taxableAmount: 0.86,
-            totalAmount: 1.0,
-          },
         ],
         subtotal: 663.78,
         taxAmount: 106.22,
@@ -219,23 +229,53 @@ const SalesManagement = () => {
         paymentMethod: "MOBILE MONEY",
         paymentTerms: "Immediate Payment",
         status: "paid",
-        scuInfo: {
-          date: "2024-11-21",
-          time: "15:16:55",
-          scuId: "KRACU0300001581",
-          receiptNumber: 2,
-          itemCount: 5,
-          internalData: "UTJK-F4R3-33AP-MHRP-WXYK-5J7Y-KY",
-          receiptSignature: "GY52-7NDT-JA7R-5Z7J",
+        createdDate: new Date("2024-11-21"),
+      },
+    ]
+
+    // Sample purchase orders
+    const samplePOs = [
+      {
+        id: "PO001",
+        poNumber: "PO202411210001",
+        supplier: {
+          id: 1,
+          name: "Afri Supplies Ltd",
+          contact: "John Kamau",
+          email: "info@afrisupplies.co.ke",
+          phone: "+254 722 123 456",
         },
+        items: [
+          {
+            productCode: "L0202004",
+            productName: "Afri Multipurpose Labels K11 19*13mm White",
+            quantity: 100,
+            rate: 45.0,
+            taxPercent: 16,
+            tax: 720.0,
+            amount: 5220.0,
+          },
+        ],
+        orderDate: new Date("2024-11-21"),
+        dueDate: new Date("2024-12-21"),
+        status: "pending",
+        totals: {
+          subtotal: 4500.0,
+          totalTax: 720.0,
+          grandTotal: 5220.0,
+        },
+        createdAt: new Date("2024-11-21"),
       },
     ]
 
     setCustomerOrders(sampleOrders)
     setInvoices(sampleInvoices)
+    setPurchaseOrders(samplePOs)
   }
 
-  // Purchase Order Batching Logic
+  /**
+   * Process batch orders - groups customer orders by supplier and creates POs
+   */
   const processBatchOrders = useCallback(async () => {
     if (batchingStatus === "processing") return
 
@@ -249,6 +289,7 @@ const SalesManagement = () => {
 
       if (pendingOrders.length === 0) {
         setBatchingStatus("idle")
+        showNotification("No pending orders to process", "info")
         return
       }
 
@@ -298,15 +339,32 @@ const SalesManagement = () => {
         const purchaseOrder = {
           id: poNumber,
           poNumber,
-          supplier: group.supplier,
+          supplier: {
+            name: group.supplier,
+            email: `info@${group.supplier.toLowerCase().replace(/\s+/g, "")}.co.ke`,
+          },
           category: group.category,
-          items: group.items,
+          items: group.items.map((item) => ({
+            productCode: item.productCode,
+            productName: item.name,
+            quantity: item.quantity,
+            rate: item.unitPrice,
+            taxPercent: item.taxRate,
+            tax: (item.quantity * item.unitPrice * item.taxRate) / 100,
+            amount: item.quantity * item.unitPrice * (1 + item.taxRate / 100),
+          })),
           totalQuantity: group.totalQuantity,
           totalValue: group.totalValue,
           status: "pending",
           createdDate: new Date(),
-          expectedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          orderDate: new Date().toISOString().split("T")[0],
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 7 days from now
           emailSent: false,
+          totals: {
+            subtotal: group.totalValue,
+            totalTax: group.totalValue * 0.16, // Assuming 16% tax
+            grandTotal: group.totalValue * 1.16,
+          },
         }
         newPurchaseOrders.push(purchaseOrder)
       })
@@ -333,6 +391,7 @@ const SalesManagement = () => {
 
       setBatchingProgress(100)
       setBatchingStatus("completed")
+      showNotification(`Successfully created ${newPurchaseOrders.length} purchase orders`, "success")
 
       // Reset status after 3 seconds
       setTimeout(() => {
@@ -342,6 +401,7 @@ const SalesManagement = () => {
     } catch (error) {
       console.error("Error processing batch orders:", error)
       setBatchingStatus("error")
+      showNotification("Error processing batch orders", "error")
       setTimeout(() => {
         setBatchingStatus("idle")
         setBatchingProgress(0)
@@ -349,35 +409,130 @@ const SalesManagement = () => {
     }
   }, [customerOrders, batchingStatus])
 
+  /**
+   * Simulate email sending to suppliers
+   */
   const simulateEmailSend = async (purchaseOrder) => {
     // Simulate email sending delay
     await new Promise((resolve) => setTimeout(resolve, 1000))
-    console.log(`Email sent to ${purchaseOrder.supplier} for PO ${purchaseOrder.poNumber}`)
+    console.log(`Email sent to ${purchaseOrder.supplier.name} for PO ${purchaseOrder.poNumber}`)
   }
 
+  /**
+   * Show notification to user
+   */
+  const showNotification = (message, severity = "success") => {
+    setNotification({
+      open: true,
+      message,
+      severity,
+    })
+  }
+
+  /**
+   * Handle tab change in the main navigation
+   */
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue)
   }
 
+  /**
+   * Handle manual Purchase Order creation
+   */
+  const handleCreatePO = () => {
+    setEditingPO(null)
+    setPOFormOpen(true)
+  }
+
+  /**
+   * Handle manual Invoice creation
+   */
+  const handleCreateInvoice = () => {
+    setEditingInvoice(null)
+    setInvoiceFormOpen(true)
+  }
+
+  /**
+   * Handle Purchase Order save operation
+   */
+  const handleSavePO = (poData) => {
+    if (editingPO) {
+      // Update existing PO
+      setPurchaseOrders((prev) => prev.map((po) => (po.id === editingPO.id ? { ...poData, id: editingPO.id } : po)))
+      showNotification("Purchase Order updated successfully", "success")
+    } else {
+      // Create new PO
+      const newPO = {
+        ...poData,
+        id: `PO${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      }
+      setPurchaseOrders((prev) => [newPO, ...prev])
+      showNotification("Purchase Order created successfully", "success")
+    }
+    setPOFormOpen(false)
+    setEditingPO(null)
+  }
+
+  /**
+   * Handle Invoice save operation
+   */
+  const handleSaveInvoice = (invoiceData) => {
+    if (editingInvoice) {
+      // Update existing invoice
+      setInvoices((prev) =>
+        prev.map((invoice) => (invoice.id === editingInvoice.id ? { ...invoiceData, id: editingInvoice.id } : invoice)),
+      )
+      showNotification("Invoice updated successfully", "success")
+    } else {
+      // Create new invoice
+      const newInvoice = {
+        ...invoiceData,
+        id: `INV${Date.now()}`,
+        createdDate: new Date(),
+      }
+      setInvoices((prev) => [newInvoice, ...prev])
+      showNotification("Invoice created successfully", "success")
+    }
+    setInvoiceFormOpen(false)
+    setEditingInvoice(null)
+  }
+
+  /**
+   * Handle viewing Purchase Order details
+   */
   const handleViewPO = (po) => {
     setSelectedPO(po)
-    setDialogType("viewPO")
-    setDialogOpen(true)
+    setViewPODialogOpen(true)
   }
 
+  /**
+   * Handle editing Purchase Order
+   */
+  const handleEditPO = (po) => {
+    setEditingPO(po)
+    setPOFormOpen(true)
+  }
+
+  /**
+   * Handle viewing Invoice details
+   */
   const handleViewInvoice = (invoice) => {
     setSelectedInvoice(invoice)
-    setDialogType("viewInvoice")
-    setDialogOpen(true)
+    setViewInvoiceDialogOpen(true)
   }
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false)
-    setSelectedPO(null)
-    setSelectedInvoice(null)
-    setDialogType("")
+  /**
+   * Handle editing Invoice
+   */
+  const handleEditInvoice = (invoice) => {
+    setEditingInvoice(invoice)
+    setInvoiceFormOpen(true)
   }
 
+  /**
+   * Format currency values for display
+   */
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-KE", {
       style: "currency",
@@ -385,6 +540,9 @@ const SalesManagement = () => {
     }).format(amount)
   }
 
+  /**
+   * Get status color for chips
+   */
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
@@ -406,18 +564,52 @@ const SalesManagement = () => {
 
   return (
     <Box sx={{ width: "100%", bgcolor: "#f8fafc", minHeight: "100vh" }}>
-      {/* Header */}
+      {/* Header with Manual Creation Buttons */}
       <Paper sx={{ mb: 3, borderRadius: 2, overflow: "hidden" }}>
         <Box sx={{ p: 3, bgcolor: "#1976d2", color: "white" }}>
-          <Typography variant="h5" sx={{ fontFamily: "'Poppins', sans-serif", fontWeight: 600 }}>
-            Sales Management
-          </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.9, mt: 1 }}>
-            Manage Purchase Orders, Invoices, and Receipts
-          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontFamily: "'Poppins', sans-serif", fontWeight: 600 }}>
+                Sales Management
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9, mt: 1 }}>
+                Manage Purchase Orders, Invoices, and Receipts
+              </Typography>
+            </Box>
+
+            {/* Manual Creation Buttons */}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleCreatePO}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  color: "white",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                  fontFamily: "'Poppins', sans-serif",
+                }}
+              >
+                Create PO
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<InvoiceIcon />}
+                onClick={handleCreateInvoice}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  color: "white",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                  fontFamily: "'Poppins', sans-serif",
+                }}
+              >
+                Create Invoice
+              </Button>
+            </Box>
+          </Box>
         </Box>
 
-        {/* Batching Status */}
+        {/* Batching Status Indicator */}
         {batchingStatus !== "idle" && (
           <Box sx={{ p: 2, bgcolor: "#e3f2fd" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
@@ -439,6 +631,7 @@ const SalesManagement = () => {
           </Box>
         )}
 
+        {/* Navigation Tabs */}
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
@@ -461,7 +654,7 @@ const SalesManagement = () => {
       {/* Purchase Orders Tab */}
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
-          {/* Controls */}
+          {/* Controls and Statistics */}
           <Grid item xs={12}>
             <Card sx={{ borderRadius: 2 }}>
               <CardContent>
@@ -479,13 +672,18 @@ const SalesManagement = () => {
                     >
                       Process Batch Orders
                     </Button>
-                    <Button variant="outlined" startIcon={<AddIcon />} sx={{ fontFamily: "'Poppins', sans-serif" }}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<AddIcon />}
+                      onClick={handleCreatePO}
+                      sx={{ fontFamily: "'Poppins', sans-serif" }}
+                    >
                       Manual PO
                     </Button>
                   </Box>
                 </Box>
 
-                {/* Batch Processing Info */}
+                {/* Batch Processing Information */}
                 <Alert severity="info" sx={{ mb: 2 }}>
                   <Typography variant="body2">
                     <strong>Automated Batching:</strong> Customer orders are automatically batched every 30 minutes.
@@ -494,7 +692,7 @@ const SalesManagement = () => {
                   </Typography>
                 </Alert>
 
-                {/* Statistics */}
+                {/* Statistics Cards */}
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={3}>
                     <Paper sx={{ p: 2, textAlign: "center", bgcolor: "#e3f2fd" }}>
@@ -546,7 +744,6 @@ const SalesManagement = () => {
                       <TableRow>
                         <TableCell>PO Number</TableCell>
                         <TableCell>Supplier</TableCell>
-                        <TableCell>Category</TableCell>
                         <TableCell>Items</TableCell>
                         <TableCell>Total Value</TableCell>
                         <TableCell>Status</TableCell>
@@ -561,18 +758,17 @@ const SalesManagement = () => {
                           <TableCell>
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                               <SupplierIcon fontSize="small" color="primary" />
-                              {po.supplier}
+                              {po.supplier?.name || po.supplier}
                             </Box>
                           </TableCell>
                           <TableCell>
-                            <Chip label={po.category} size="small" icon={<CategoryIcon />} variant="outlined" />
-                          </TableCell>
-                          <TableCell>
-                            <Badge badgeContent={po.items.length} color="primary">
+                            <Badge badgeContent={po.items?.length || 0} color="primary">
                               <GroupIcon />
                             </Badge>
                           </TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>{formatCurrency(po.totalValue)}</TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>
+                            {formatCurrency(po.totals?.grandTotal || po.totalValue || 0)}
+                          </TableCell>
                           <TableCell>
                             <Chip
                               label={po.status}
@@ -582,7 +778,10 @@ const SalesManagement = () => {
                             />
                           </TableCell>
                           <TableCell>
-                            {po.createdDate.toLocaleDateString("en-US", {
+                            {(po.createdDate || po.createdAt
+                              ? new Date(po.createdDate || po.createdAt)
+                              : new Date()
+                            ).toLocaleDateString("en-US", {
                               year: "numeric",
                               month: "short",
                               day: "2-digit",
@@ -593,6 +792,11 @@ const SalesManagement = () => {
                               <Tooltip title="View Details">
                                 <IconButton size="small" onClick={() => handleViewPO(po)}>
                                   <ViewIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Edit PO">
+                                <IconButton size="small" onClick={() => handleEditPO(po)}>
+                                  <EditIcon />
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Send Email">
@@ -611,9 +815,9 @@ const SalesManagement = () => {
                       ))}
                       {purchaseOrders.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={8} sx={{ textAlign: "center", py: 4 }}>
+                          <TableCell colSpan={7} sx={{ textAlign: "center", py: 4 }}>
                             <Typography color="text.secondary">
-                              No purchase orders found. Process batch orders to generate POs.
+                              No purchase orders found. Create a manual PO or process batch orders.
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -637,7 +841,12 @@ const SalesManagement = () => {
                   <Typography variant="h6" sx={{ fontFamily: "'Poppins', sans-serif" }}>
                     Invoice Management
                   </Typography>
-                  <Button variant="contained" startIcon={<AddIcon />} sx={{ fontFamily: "'Poppins', sans-serif" }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={handleCreateInvoice}
+                    sx={{ fontFamily: "'Poppins', sans-serif" }}
+                  >
                     Create Invoice
                   </Button>
                 </Box>
@@ -660,11 +869,14 @@ const SalesManagement = () => {
                           <TableCell sx={{ fontWeight: 500 }}>{invoice.invoiceNumber}</TableCell>
                           <TableCell>{invoice.customerName}</TableCell>
                           <TableCell>
-                            {invoice.invoiceDate.toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "2-digit",
-                            })}
+                            {(invoice.invoiceDate ? new Date(invoice.invoiceDate) : new Date()).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "2-digit",
+                              },
+                            )}
                           </TableCell>
                           <TableCell sx={{ fontWeight: 600 }}>{formatCurrency(invoice.totalAmount)}</TableCell>
                           <TableCell>
@@ -675,6 +887,11 @@ const SalesManagement = () => {
                               <Tooltip title="View Invoice">
                                 <IconButton size="small" onClick={() => handleViewInvoice(invoice)}>
                                   <ViewIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Edit Invoice">
+                                <IconButton size="small" onClick={() => handleEditInvoice(invoice)}>
+                                  <EditIcon />
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Print">
@@ -691,6 +908,15 @@ const SalesManagement = () => {
                           </TableCell>
                         </TableRow>
                       ))}
+                      {invoices.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
+                            <Typography color="text.secondary">
+                              No invoices found. Click "Create Invoice" to add your first invoice.
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </TableContainer>
@@ -718,14 +944,36 @@ const SalesManagement = () => {
         </Grid>
       </TabPanel>
 
+      {/* Purchase Order Form Dialog */}
+      <PurchaseOrderForm
+        open={poFormOpen}
+        onClose={() => {
+          setPOFormOpen(false)
+          setEditingPO(null)
+        }}
+        onSave={handleSavePO}
+        editPO={editingPO}
+      />
+
+      {/* Invoice Form Dialog */}
+      <InvoiceForm
+        open={invoiceFormOpen}
+        onClose={() => {
+          setInvoiceFormOpen(false)
+          setEditingInvoice(null)
+        }}
+        onSave={handleSaveInvoice}
+        editInvoice={editingInvoice}
+      />
+
       {/* Purchase Order Details Dialog */}
-      <Dialog open={dialogOpen && dialogType === "viewPO"} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog open={viewPODialogOpen} onClose={() => setViewPODialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <Typography variant="h6">Purchase Order Details</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {selectedPO?.poNumber}
-            </Typography>
+            <IconButton onClick={() => setViewPODialogOpen(false)}>
+              <CloseIcon />
+            </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -734,37 +982,31 @@ const SalesManagement = () => {
               <Grid container spacing={2} sx={{ mb: 3 }}>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="text.secondary">
-                    Supplier
+                    PO Number
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {selectedPO.supplier}
+                    {selectedPO.poNumber}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="text.secondary">
-                    Category
+                    Supplier
                   </Typography>
-                  <Typography variant="body1">{selectedPO.category}</Typography>
+                  <Typography variant="body1">{selectedPO.supplier?.name || selectedPO.supplier}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Total Value
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    {formatCurrency(selectedPO.totalValue)}
+                    {formatCurrency(selectedPO.totals?.grandTotal || selectedPO.totalValue || 0)}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="text.secondary">
-                    Expected Delivery
+                    Status
                   </Typography>
-                  <Typography variant="body1">
-                    {selectedPO.expectedDelivery.toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "2-digit",
-                    })}
-                  </Typography>
+                  <Chip label={selectedPO.status} color={getStatusColor(selectedPO.status)} size="small" />
                 </Grid>
               </Grid>
 
@@ -780,18 +1022,20 @@ const SalesManagement = () => {
                       <TableCell>Product Code</TableCell>
                       <TableCell>Name</TableCell>
                       <TableCell>Quantity</TableCell>
-                      <TableCell>Unit Price</TableCell>
-                      <TableCell>Total</TableCell>
+                      <TableCell>Rate</TableCell>
+                      <TableCell>Amount</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {selectedPO.items.map((item, index) => (
+                    {(selectedPO.items || []).map((item, index) => (
                       <TableRow key={index}>
                         <TableCell sx={{ fontFamily: "monospace" }}>{item.productCode}</TableCell>
-                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.productName || item.name}</TableCell>
                         <TableCell>{item.quantity}</TableCell>
-                        <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
-                        <TableCell sx={{ fontWeight: 500 }}>{formatCurrency(item.totalValue)}</TableCell>
+                        <TableCell>{formatCurrency(item.rate || item.unitPrice || 0)}</TableCell>
+                        <TableCell sx={{ fontWeight: 500 }}>
+                          {formatCurrency(item.amount || item.totalValue || 0)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -801,7 +1045,7 @@ const SalesManagement = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Close</Button>
+          <Button onClick={() => setViewPODialogOpen(false)}>Close</Button>
           <Button variant="contained" startIcon={<EmailIcon />}>
             Send to Supplier
           </Button>
@@ -812,13 +1056,13 @@ const SalesManagement = () => {
       </Dialog>
 
       {/* Invoice Details Dialog */}
-      <Dialog open={dialogOpen && dialogType === "viewInvoice"} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
+      <Dialog open={viewInvoiceDialogOpen} onClose={() => setViewInvoiceDialogOpen(false)} maxWidth="lg" fullWidth>
         <DialogTitle>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <Typography variant="h6">Invoice Details</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {selectedInvoice?.invoiceNumber}
-            </Typography>
+            <IconButton onClick={() => setViewInvoiceDialogOpen(false)}>
+              <CloseIcon />
+            </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -852,17 +1096,15 @@ const SalesManagement = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <Box sx={{ textAlign: "right" }}>
-                    <Typography variant="body2">
-                      <strong>Invoice Date:</strong>{" "}
-                      {selectedInvoice.invoiceDate.toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                      })}
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                      Invoice {selectedInvoice.invoiceNumber}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Delivery Date:</strong>{" "}
-                      {selectedInvoice.deliveryDate.toLocaleDateString("en-US", {
+                      <strong>Invoice Date:</strong>{" "}
+                      {(selectedInvoice.invoiceDate
+                        ? new Date(selectedInvoice.invoiceDate)
+                        : new Date()
+                      ).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "2-digit",
                         day: "2-digit",
@@ -879,18 +1121,16 @@ const SalesManagement = () => {
               <TableContainer sx={{ mb: 3 }}>
                 <Table>
                   <TableHead>
-                    <TableRow>
+                    <TableRow sx={{ bgcolor: "#f0f0f0" }}>
                       <TableCell>#</TableCell>
                       <TableCell>Description</TableCell>
                       <TableCell>Quantity</TableCell>
                       <TableCell>Unit Price</TableCell>
-                      <TableCell>Taxes</TableCell>
-                      <TableCell>Taxable Amount</TableCell>
                       <TableCell>Total Amount</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {selectedInvoice.items.map((item, index) => (
+                    {(selectedInvoice.items || []).map((item, index) => (
                       <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>
@@ -900,8 +1140,6 @@ const SalesManagement = () => {
                         </TableCell>
                         <TableCell>{item.quantity} Pc</TableCell>
                         <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
-                        <TableCell>({item.taxRate}%)</TableCell>
-                        <TableCell>{formatCurrency(item.taxableAmount)}</TableCell>
                         <TableCell sx={{ fontWeight: 500 }}>{formatCurrency(item.totalAmount)}</TableCell>
                       </TableRow>
                     ))}
@@ -909,30 +1147,30 @@ const SalesManagement = () => {
                 </Table>
               </TableContainer>
 
-              {/* Tax Summary */}
+              {/* Summary */}
               <Grid container spacing={3}>
                 <Grid item xs={8}>
                   <Typography variant="body2">
                     <strong>Payment terms:</strong> {selectedInvoice.paymentTerms}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Payment Communication:</strong> INV/2024/00018
+                    <strong>Payment Method:</strong> {selectedInvoice.paymentMethod}
                   </Typography>
                 </Grid>
                 <Grid item xs={4}>
                   <Paper sx={{ p: 2, bgcolor: "#f5f5f5" }}>
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Tax Summary
+                      Invoice Summary
                     </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                      <Typography variant="body2">16% VAT:</Typography>
-                      <Typography variant="body2">{formatCurrency(selectedInvoice.taxAmount)}</Typography>
-                    </Box>
-                    <Divider sx={{ my: 1 }} />
                     <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                       <Typography variant="body2">Subtotal:</Typography>
                       <Typography variant="body2">{formatCurrency(selectedInvoice.subtotal)}</Typography>
                     </Box>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                      <Typography variant="body2">Tax Amount:</Typography>
+                      <Typography variant="body2">{formatCurrency(selectedInvoice.taxAmount)}</Typography>
+                    </Box>
+                    <Divider sx={{ my: 1 }} />
                     <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                       <Typography variant="body1" sx={{ fontWeight: 600 }}>
                         Total:
@@ -956,44 +1194,11 @@ const SalesManagement = () => {
                   </Paper>
                 </Grid>
               </Grid>
-
-              {/* SCU Information */}
-              {selectedInvoice.scuInfo && (
-                <Box sx={{ mt: 3, p: 2, bgcolor: "#e3f2fd", borderRadius: 1 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    SCU Information
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Typography variant="body2">
-                        <strong>Date:</strong> {selectedInvoice.scuInfo.date} {selectedInvoice.scuInfo.time}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>SCU ID:</strong> {selectedInvoice.scuInfo.scuId}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Receipt Number:</strong> {selectedInvoice.scuInfo.receiptNumber}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="body2">
-                        <strong>Payment Method:</strong> {selectedInvoice.paymentMethod}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Item Count:</strong> {selectedInvoice.scuInfo.itemCount}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Receipt Signature:</strong> {selectedInvoice.scuInfo.receiptSignature}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </Box>
-              )}
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Close</Button>
+          <Button onClick={() => setViewInvoiceDialogOpen(false)}>Close</Button>
           <Button variant="outlined" startIcon={<PrintIcon />}>
             Print
           </Button>
@@ -1002,6 +1207,22 @@ const SalesManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification({ ...notification, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setNotification({ ...notification, open: false })}
+          severity={notification.severity}
+          sx={{ width: "100%" }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

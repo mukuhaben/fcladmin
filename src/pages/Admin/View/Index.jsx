@@ -21,7 +21,7 @@ import EnhancedDashboard from "../../../components/admin/EnhancedDashboard"
 import NewItemForm from "../../../components/admin/NewItemForm"
 import ManageItems from "../../../components/admin/ManageItems"
 import CategoryManagement from "../../../components/admin/CategoryManagement"
-import InventoryManagement from "../../../components/admin/InventoryManagement"
+import GRNManagement from "../../../components/admin/InventoryManagement"
 import SalesManagement from "../../../components/admin/SalesManagement"
 import SupplierManagement from "../../../components/admin/SupplierManagement"
 import SalesAgentAdminPanel from "../../../components/admin/SalesAgentAdminPanel"
@@ -469,7 +469,7 @@ const AdminPage = () => {
 
         {/* Inventory - E-commerce Stock Management with CRUD */}
         <TabPanel value={tabValue} index={4}>
-          <InventoryManagement />
+          <GRNManagement />
         </TabPanel>
 
         {/* Suppliers - E-commerce Vendor Management with CRUD */}
